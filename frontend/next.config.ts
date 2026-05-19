@@ -13,12 +13,9 @@ const nextConfig: NextConfig = {
     unoptimized: true,
   },
   reactStrictMode: true,
-  // Prevent serverless function crashes on Vercel
   experimental: {
     optimizePackageImports: ["lucide-react"],
   },
-  // Increase serverless function memory limit
-  serverExternalPackages: [],
 };
 
 export default nextConfig;
