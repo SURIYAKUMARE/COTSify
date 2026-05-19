@@ -10,9 +10,15 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "www.raspberrypi.com" },
       { protocol: "https", hostname: "lh3.googleusercontent.com" },
     ],
+    unoptimized: true,
   },
-  // Suppress hydration warnings from browser extensions
   reactStrictMode: true,
+  // Prevent serverless function crashes on Vercel
+  experimental: {
+    optimizePackageImports: ["lucide-react"],
+  },
+  // Increase serverless function memory limit
+  serverExternalPackages: [],
 };
 
 export default nextConfig;
