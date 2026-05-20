@@ -1,7 +1,16 @@
-backend/
-node_modules/
-.venv/
-*.pyc
-__pycache__/
+# Never deploy secrets
 backend/.env
 frontend/.env.local
+
+# Python cache - not needed
+backend/__pycache__/
+backend/**/__pycache__/
+backend/*.pyc
+backend/**/*.pyc
+.venv/
+venv/
+
+# Node - not needed at root
+node_modules/
+frontend/node_modules/
+frontend/.next/
