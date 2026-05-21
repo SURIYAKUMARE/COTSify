@@ -3,11 +3,13 @@ import { createClient, SupabaseClient } from "@supabase/supabase-js";
 let _client: SupabaseClient | null = null;
 
 export function getSupabaseClient(): SupabaseClient | null {
-  // Never run on server
   if (typeof window === "undefined") return null;
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  // Support both old anon key format and new publishable key format
+  const key =
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
   if (
     !url || !key ||
