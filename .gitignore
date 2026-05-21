@@ -1,4 +1,4 @@
-# Environment files - NEVER commit these
+S# Environment files - NEVER commit these
 backend/.env
 frontend/.env.local
 *.env
