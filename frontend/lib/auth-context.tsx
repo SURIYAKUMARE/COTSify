@@ -148,7 +148,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         password,
         options: { data: { full_name: fullName || email.split("@")[0] } },
       });
-      if (error) return { error: error.message };
+      if (error) {
+        if (error.message.includes("Too many requests") || error.status === 429) {
+          return { error: "Too many sign-up attempts. Please wait 60 seconds and try again." };
+        }
+        return { error: error.message };
+      }
       if (data.user) {
         // If email confirmation required, inform user
         if (!data.session) {
@@ -178,7 +183,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (sb) {
       const { data, error } = await sb.auth.signInWithPassword({ email, password });
       if (error) {
-        // If Supabase is configured but login fails, return the real error
+        // Handle rate limiting gracefully
+        if (error.message.includes("Too many requests") || error.status === 429) {
+          return { error: "Too many sign-in attempts. Please wait 60 seconds and try again." };
+        }
         return { error: error.message };
       }
       if (data.user) {
@@ -220,10 +228,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const sb = getSupabaseClient();
     if (!sb) return { error: "Supabase not configured. Add your keys to .env.local" };
     try {
+      // Use the Supabase callback URL — this must match Google Console exactly
+      const redirectTo = `${window.location.origin}/auth/callback`;
       const { error } = await sb.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo,
           queryParams: { access_type: "offline", prompt: "consent" },
         },
       });

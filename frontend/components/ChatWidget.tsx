@@ -143,36 +143,51 @@ export default function ChatWidget({ projectContext, inline = false }: { project
       setMessages((prev) => [...prev, assistantMsg]);
       setStreamingText("");
     } catch {
-      // Fallback to non-streaming
+      // Fallback: try Gemini directly
       try {
-        const allMessages = [...messages, userMsg].map((m) => ({
-          role: m.role,
-          content: m.content,
-        }));
-        const { data } = await api.post("/api/chat/", {
-          messages: allMessages,
-          project_context: projectContext,
-        });
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: crypto.randomUUID(),
-            role: "assistant",
-            content: data.message,
-            timestamp: new Date(),
-          },
-        ]);
-      } catch {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: crypto.randomUUID(),
-            role: "assistant",
-            content: "Sorry, I am having trouble connecting. Please check that the backend is running.",
-            timestamp: new Date(),
-          },
-        ]);
-      }
+        const geminiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+        if (geminiKey) {
+          const allMessages = [...messages, userMsg];
+          const chatHistory = allMessages.map(m =>
+            `${m.role === "user" ? "User" : "Assistant"}: ${m.content}`
+          ).join("\n");
+          const prompt = `You are COTsify AI, an expert electronics and engineering assistant. Help with component selection, wiring, pricing, and project planning for Indian makers and students.\n\n${chatHistory}\n\nAssistant:`;
+
+          const res = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                contents: [{ parts: [{ text: prompt }] }],
+                generationConfig: { temperature: 0.7, maxOutputTokens: 1024 },
+              }),
+            }
+          );
+          if (res.ok) {
+            const json = await res.json();
+            const reply = json.candidates?.[0]?.content?.parts?.[0]?.text || "I could not generate a response.";
+            setMessages(prev => [...prev, {
+              id: crypto.randomUUID(), role: "assistant", content: reply, timestamp: new Date(),
+            }]);
+            setStreamingText("");
+            setLoading(false);
+            setStreaming(false);
+            return;
+          }
+        }
+      } catch { /* Gemini also failed */ }
+
+      // Final fallback message
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          role: "assistant",
+          content: "Sorry, I am having trouble connecting to the AI service right now. Please try again in a moment.",
+          timestamp: new Date(),
+        },
+      ]);
       setStreamingText("");
     } finally {
       setLoading(false);

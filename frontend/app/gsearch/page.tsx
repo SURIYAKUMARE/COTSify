@@ -69,7 +69,19 @@ function GSearchContent() {
       setResults(data.results);
       setSource(data.source);
     } catch {
-      setError("Search failed. Please try again.");
+      // Backend unavailable — generate direct store links as fallback
+      const encoded = encodeURIComponent(q);
+      const fallbackResults: SearchResult[] = [
+        { title: `${q} - Amazon India`, link: `https://www.amazon.in/s?k=${encoded}`, snippet: `Search for "${q}" on Amazon India. Compare prices and buy online.`, platform: "Amazon", display_link: "amazon.in" },
+        { title: `${q} - Flipkart`, link: `https://www.flipkart.com/search?q=${encoded}`, snippet: `Find "${q}" on Flipkart with fast delivery options.`, platform: "Flipkart", display_link: "flipkart.com" },
+        { title: `${q} - Robu.in`, link: `https://robu.in/?s=${encoded}`, snippet: `Buy "${q}" from Robu.in - India's leading robotics store.`, platform: "Robu.in", display_link: "robu.in" },
+        { title: `${q} - ElectronicsComp`, link: `https://www.electronicscomp.com/search?q=${encoded}`, snippet: `Shop "${q}" at ElectronicsComp with competitive prices.`, platform: "ElectronicsComp", display_link: "electronicscomp.com" },
+        { title: `${q} - Quartzcomponents`, link: `https://quartzcomponents.com/search?type=product&q=${encoded}`, snippet: `Find "${q}" at Quartzcomponents - quality electronics.`, platform: "QuartzComponents", display_link: "quartzcomponents.com" },
+        { title: `${q} - Google Shopping`, link: `https://www.google.com/search?q=${encoded}+buy+india&tbm=shop`, snippet: `Compare prices for "${q}" across all Indian stores via Google Shopping.`, platform: "Google Shopping", display_link: "google.com/shopping" },
+      ];
+      setResults(fallbackResults);
+      setSource("fallback");
+      setError("");
     } finally {
       setLoading(false);
     }
@@ -207,6 +219,12 @@ function GSearchContent() {
       {/* Results */}
       {filtered.length > 0 && (
         <div>
+          {source === "fallback" && (
+            <div className="mb-4 bg-amber-950/40 border border-amber-800/50 rounded-xl px-4 py-3 flex items-center gap-2 text-sm text-amber-400">
+              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+              Showing direct store links. Configure Google Search API for live results.
+            </div>
+          )}
           {/* Results header */}
           <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
             <div className="flex items-center gap-3">
