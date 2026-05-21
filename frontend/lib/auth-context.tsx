@@ -70,7 +70,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const sb = getSupabaseClient();
     if (sb) {
-      // First check localStorage cache for instant load
+      // Supabase IS configured — only allow real Supabase auth, no guest fallback
+      // Clear any stale guest session
+      try { localStorage.removeItem(GUEST_KEY); } catch {}
+
+      // Check for cached Supabase user for instant load
       try {
         const cached = localStorage.getItem(SUPABASE_USER_KEY);
         if (cached) setUser(JSON.parse(cached));
@@ -80,13 +84,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (session?.user) {
           setUser(buildUser(session.user));
         } else {
-          // Clear supabase cache, try guest
+          // No active session — user must sign in
           try { localStorage.removeItem(SUPABASE_USER_KEY); } catch {}
-          loadGuest();
+          setUser(null);
         }
         setLoading(false);
       }).catch(() => {
-        loadGuest();
+        setUser(null);
         setLoading(false);
       });
 
@@ -95,13 +99,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUser(buildUser(session.user));
         } else {
           try { localStorage.removeItem(SUPABASE_USER_KEY); } catch {}
-          if (event === "SIGNED_OUT") setUser(null);
-          else loadGuest();
+          setUser(null);
         }
         setLoading(false);
       });
       return () => subscription.unsubscribe();
     } else {
+      // Supabase NOT configured — allow guest mode for local dev
       loadGuest();
       setLoading(false);
     }
@@ -135,6 +139,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signUpGuest = async (email: string, password: string, fullName?: string) => {
     if (!email || !password) return { error: "Email and password required" };
     if (password.length < 6) return { error: "Password must be at least 6 characters" };
+
+    // Try real Supabase signup first
+    const sb = getSupabaseClient();
+    if (sb) {
+      const { data, error } = await sb.auth.signUp({
+        email,
+        password,
+        options: { data: { full_name: fullName || email.split("@")[0] } },
+      });
+      if (error) return { error: error.message };
+      if (data.user) {
+        // If email confirmation required, inform user
+        if (!data.session) {
+          return { error: "Check your email to confirm your account before signing in." };
+        }
+        setUser(buildUser(data.user));
+        return {};
+      }
+    }
+
+    // Fallback: local guest mode (only when Supabase not configured)
     const newUser: AppUser = {
       id: crypto.randomUUID(), email,
       full_name: fullName || email.split("@")[0],
@@ -147,11 +172,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signInGuest = async (email: string, password: string) => {
     if (!email || !password) return { error: "Email and password required" };
+
+    // Try real Supabase signin first
+    const sb = getSupabaseClient();
+    if (sb) {
+      const { data, error } = await sb.auth.signInWithPassword({ email, password });
+      if (error) {
+        // If Supabase is configured but login fails, return the real error
+        return { error: error.message };
+      }
+      if (data.user) {
+        setUser(buildUser(data.user));
+        return {};
+      }
+    }
+
+    // Fallback: local guest mode (only when Supabase not configured)
     try {
       const stored = localStorage.getItem(GUEST_KEY);
       if (stored) {
         const existing: AppUser = JSON.parse(stored);
         if (existing.email === email) { setUser(existing); return {}; }
+        else return { error: "Wrong email or password." };
       }
     } catch {}
     const newUser: AppUser = {
