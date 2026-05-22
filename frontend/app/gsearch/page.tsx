@@ -68,8 +68,10 @@ function GSearchContent() {
       const { data } = await api.get(`${endpoint}?q=${encodeURIComponent(q)}&num=10`);
       setResults(data.results);
       setSource(data.source);
+      // If web search returned empty (not configured), fall through to fallback
+      if (data.results.length === 0) throw new Error("no results");
     } catch {
-      // Backend unavailable — generate direct store links as fallback
+      // Backend unavailable or no results — generate direct store links as fallback
       const encoded = encodeURIComponent(q);
       const fallbackResults: SearchResult[] = [
         { title: `${q} - Amazon India`, link: `https://www.amazon.in/s?k=${encoded}`, snippet: `Search for "${q}" on Amazon India. Compare prices and buy online.`, platform: "Amazon", display_link: "amazon.in" },
@@ -81,7 +83,6 @@ function GSearchContent() {
       ];
       setResults(fallbackResults);
       setSource("fallback");
-      setError("");
     } finally {
       setLoading(false);
     }

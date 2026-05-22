@@ -42,9 +42,9 @@ const HOW_IT_WORKS = [
 ];
 
 const TESTIMONIALS = [
-  { name: "Arjun K.", role: "ECE Student, VIT", text: "COTsify saved me 3 hours of research for my IoT project. Got the full component list in seconds!", avatar: "A" },
-  { name: "Priya M.", role: "Robotics Club Lead", text: "The price comparison feature is incredible. Found Arduino Uno for ₹349 instead of ₹649!", avatar: "P" },
-  { name: "Rahul S.", role: "Final Year Project", text: "The AI chat helped me understand which sensors to use for my health monitoring system.", avatar: "R" },
+  { name: "SURIYAKUMAR E", role: "AIML Department", text: "COTsify saved me 3 hours of research for my IoT project. Got the full component list in seconds!", avatar: "S" },
+  { name: "JEFFREYNICKALAS M", role: "AIML Department", text: "The price comparison feature is incredible. Found Arduino Uno for ₹349 instead of ₹649!", avatar: "J" },
+  { name: "JOVITA D", role: "AIML Department", text: "The AI chat helped me understand which sensors to use for my health monitoring system.", avatar: "J" },
 ];
 
 export default function HomePage() {
@@ -225,6 +225,124 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ── TEAM ──────────────────────────────────────────────────────────── */}
+      <section className="px-4 py-20 relative z-10">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 bg-cyan-950/60 border border-cyan-800/50 text-cyan-400 text-xs px-4 py-1.5 rounded-full mb-4">
+              <Users className="w-3 h-3" /> Our Team
+            </div>
+            <h2 className="text-3xl font-bold text-white mb-3">Built by AIML Students</h2>
+            <p className="text-gray-400 text-sm">Final year project — Artificial Intelligence & Machine Learning</p>
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {[
+              { name: "SURIYAKUMAR E", role: "AIML", num: "01", color: "from-cyan-500 to-blue-600" },
+              { name: "JEFFREYNICKALAS M", role: "AIML", num: "02", color: "from-blue-500 to-purple-600" },
+              { name: "JOVITA D", role: "AIML", num: "03", color: "from-purple-500 to-pink-600" },
+              { name: "PREDEEP KV", role: "AIML", num: "04", color: "from-pink-500 to-rose-600" },
+            ].map((m) => (
+              <div key={m.name} className="group bg-gray-900/60 border border-gray-800 hover:border-gray-600 rounded-2xl p-6 text-center transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-black/20">
+                <div className={`w-16 h-16 bg-gradient-to-br ${m.color} rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg group-hover:scale-110 transition-transform`}>
+                  <span className="text-white font-bold text-xl">{m.name[0]}</span>
+                </div>
+                <div className="text-xs text-gray-600 font-mono mb-1">{m.num}</div>
+                <h3 className="text-white font-bold text-sm mb-1 group-hover:text-cyan-300 transition-colors">{m.name}</h3>
+                <span className="text-xs bg-cyan-950/60 text-cyan-400 border border-cyan-800/50 px-2 py-0.5 rounded-full">{m.role}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── HANDS-ON & TINKERCAD ──────────────────────────────────────────── */}
+      <section className="px-4 py-20 relative z-10">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_50%_50%,rgba(139,92,246,0.06),transparent)] pointer-events-none" />
+        <div className="max-w-5xl mx-auto relative">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 bg-purple-950/60 border border-purple-800/50 text-purple-400 text-xs px-4 py-1.5 rounded-full mb-4">
+              <Zap className="w-3 h-3" /> Hands-On Tools
+            </div>
+            <h2 className="text-3xl font-bold text-white mb-3">Simulate before you build</h2>
+            <p className="text-gray-400 text-sm max-w-xl mx-auto">Design circuits, write code, and test your project virtually — all before buying a single component.</p>
+          </div>
+          <div className="grid sm:grid-cols-2 gap-6">
+            {/* Tinkercad card */}
+            <div className="group bg-gray-900/60 border border-gray-800 hover:border-purple-700/50 rounded-2xl p-6 transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-purple-900/20">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-3 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl shadow-lg group-hover:scale-110 transition-transform">
+                  <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-white font-bold text-lg group-hover:text-purple-300 transition-colors">Tinkercad Simulator</h3>
+                  <p className="text-gray-500 text-xs">Circuit design & Arduino simulation</p>
+                </div>
+              </div>
+              <p className="text-gray-400 text-sm leading-relaxed mb-5">
+                Design your circuit, write Arduino code, and simulate it virtually. Tinkercad auto-suggests components and helps you test before buying.
+              </p>
+              <div className="flex flex-col gap-2 mb-5">
+                {["Visual circuit drag-and-drop editor", "Arduino code editor with auto-complete", "Real-time simulation & debugging", "Export circuit diagrams"].map(f => (
+                  <div key={f} className="flex items-center gap-2 text-xs text-gray-400">
+                    <CheckCircle className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />
+                    {f}
+                  </div>
+                ))}
+              </div>
+              <a
+                href="https://www.tinkercad.com/circuits"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-400 hover:to-pink-500 text-white font-semibold py-3 rounded-xl transition-all text-sm"
+              >
+                Open Tinkercad <ArrowRight className="w-4 h-4" />
+              </a>
+            </div>
+
+            {/* Hands-on guide card */}
+            <div className="group bg-gray-900/60 border border-gray-800 hover:border-cyan-700/50 rounded-2xl p-6 transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-cyan-900/20">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-3 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-2xl shadow-lg group-hover:scale-110 transition-transform">
+                  <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-white font-bold text-lg group-hover:text-cyan-300 transition-colors">Hands-On Workflow</h3>
+                  <p className="text-gray-500 text-xs">From idea to working prototype</p>
+                </div>
+              </div>
+              <p className="text-gray-400 text-sm leading-relaxed mb-5">
+                Follow our step-by-step workflow: analyze your project with AI, simulate the circuit, source components locally, and build your prototype.
+              </p>
+              <div className="flex flex-col gap-3 mb-5">
+                {[
+                  { step: "1", text: "Analyze project → get full BOM", color: "bg-cyan-500" },
+                  { step: "2", text: "Simulate circuit on Tinkercad", color: "bg-blue-500" },
+                  { step: "3", text: "Find cheapest components nearby", color: "bg-purple-500" },
+                  { step: "4", text: "Build & test your prototype", color: "bg-green-500" },
+                ].map(s => (
+                  <div key={s.step} className="flex items-center gap-3">
+                    <div className={`w-5 h-5 ${s.color} rounded-full flex items-center justify-center flex-shrink-0`}>
+                      <span className="text-white text-xs font-bold">{s.step}</span>
+                    </div>
+                    <span className="text-gray-300 text-sm">{s.text}</span>
+                  </div>
+                ))}
+              </div>
+              <Link
+                href="/search"
+                className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-semibold py-3 rounded-xl transition-all text-sm"
+              >
+                Start your project <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ── TESTIMONIALS ──────────────────────────────────────────────────── */}
       <section className="px-4 py-20 relative z-10">
         <div className="max-w-5xl mx-auto">
@@ -310,7 +428,7 @@ export default function HomePage() {
           </div>
           <div className="border-t border-gray-900 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
             <p className="text-gray-600 text-sm">© 2025 COTsify. Built for engineers.</p>
-            <p className="text-gray-600 text-sm">Made with ❤️ in India</p>
+            <p className="text-gray-600 text-sm">Team: SURIYAKUMAR E · JEFFREYNICKALAS M · JOVITA D · PREDEEP KV — AIML</p>
           </div>
         </div>
       </footer>

@@ -34,9 +34,10 @@ const NAV_LINKS = [
   { href: "/catalog", icon: <BookOpen className="w-4 h-4" />, label: "Catalog" },
   { href: "/learn", icon: <GraduationCap className="w-4 h-4" />, label: "Learn" },
   { href: "/compare", icon: <GitCompare className="w-4 h-4" />, label: "Compare" },
+  { href: "https://www.tinkercad.com/circuits", icon: <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18" /></svg>, label: "Simulate", external: true },
   { href: "/dashboard", icon: <LayoutDashboard className="w-4 h-4" />, label: "Dashboard" },
   { href: "/profile", icon: <User className="w-4 h-4" />, label: "Profile" },
-];
+] as const;
 
 export default function Navbar() {
   const path = usePathname();
@@ -85,14 +86,27 @@ export default function Navbar() {
           {/* Desktop nav links */}
           <div className="hidden md:flex items-center gap-1">
             {NAV_LINKS.map(link => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg transition-colors ${active(link.href)}`}
-              >
-                {link.icon}
-                <span className="hidden lg:inline">{link.label}</span>
-              </Link>
+              "external" in link && link.external ? (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg transition-colors text-gray-400 hover:text-white hover:bg-gray-800/50`}
+                >
+                  {link.icon}
+                  <span className="hidden lg:inline">{link.label}</span>
+                </a>
+              ) : (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg transition-colors ${active(link.href)}`}
+                >
+                  {link.icon}
+                  <span className="hidden lg:inline">{link.label}</span>
+                </Link>
+              )
             ))}
           </div>
 
@@ -217,21 +231,37 @@ export default function Navbar() {
             {/* Nav links */}
             <div className="flex-1 overflow-y-auto py-3 px-3">
               {NAV_LINKS.map(link => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={`flex items-center justify-between px-4 py-3 rounded-xl mb-1 transition-colors ${
-                    path.startsWith(link.href)
-                      ? "bg-cyan-950/60 text-cyan-400 border border-cyan-800/50"
-                      : "text-gray-400 hover:text-white hover:bg-gray-800"
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    {link.icon}
-                    <span className="font-medium">{link.label}</span>
-                  </div>
-                  <ChevronRight className="w-4 h-4 opacity-50" />
-                </Link>
+                "external" in link && link.external ? (
+                  <a
+                    key={link.href}
+                    href={link.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-between px-4 py-3 rounded-xl mb-1 transition-colors text-gray-400 hover:text-white hover:bg-gray-800"
+                  >
+                    <div className="flex items-center gap-3">
+                      {link.icon}
+                      <span className="font-medium">{link.label}</span>
+                    </div>
+                    <ChevronRight className="w-4 h-4 opacity-50" />
+                  </a>
+                ) : (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className={`flex items-center justify-between px-4 py-3 rounded-xl mb-1 transition-colors ${
+                      path.startsWith(link.href)
+                        ? "bg-cyan-950/60 text-cyan-400 border border-cyan-800/50"
+                        : "text-gray-400 hover:text-white hover:bg-gray-800"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      {link.icon}
+                      <span className="font-medium">{link.label}</span>
+                    </div>
+                    <ChevronRight className="w-4 h-4 opacity-50" />
+                  </Link>
+                )
               ))}
             </div>
 
