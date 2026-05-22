@@ -23,7 +23,8 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType>({
-  user: null, loading: true,
+  user: null,
+  loading: true,
   signInGuest: async () => ({}),
   signUpGuest: async () => ({}),
   signInWithGoogle: async () => ({}),
@@ -34,14 +35,23 @@ const AuthContext = createContext<AuthContextType>({
 const GUEST_KEY = "cotsify_guest_user";
 const SUPABASE_USER_KEY = "cotsify_supabase_user";
 
+type SupabaseUser = {
+  id: string;
+  email?: string;
+  phone?: string;
+  user_metadata?: Record<string, string>;
+  identities?: Array<{ provider: string }>;
+};
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AppUser | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const buildUser = (supaUser: any): AppUser => {
+  const buildUser = (supaUser: SupabaseUser): AppUser => {
     const meta = supaUser.user_metadata || {};
     const identities = supaUser.identities || [];
-    const isGoogle = identities.some((i: any) => i.provider === "google") ||
+    const isGoogle =
+      identities.some((i) => i.provider === "google") ||
       meta.iss?.includes("accounts.google.com") ||
       meta.provider_id !== undefined;
 
@@ -54,11 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         meta.email?.split("@")[0] ||
         supaUser.email?.split("@")[0] ||
         "User",
-      avatar_url:
-        meta.avatar_url ||
-        meta.picture ||
-        meta.photo_url ||
-        undefined,
+      avatar_url: meta.avatar_url || meta.picture || meta.photo_url || undefined,
       phone: supaUser.phone,
       provider: "supabase",
       google_connected: isGoogle,
@@ -70,21 +76,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const sb = getSupabaseClient();
     if (sb) {
-      // Supabase IS configured — only allow real Supabase auth, no guest fallback
-      // Clear any stale guest session
+      // Supabase configured — clear any stale guest session
       try { localStorage.removeItem(GUEST_KEY); } catch {}
 
-      // Check for cached Supabase user for instant load
+      // Load cached user for instant render
       try {
         const cached = localStorage.getItem(SUPABASE_USER_KEY);
         if (cached) setUser(JSON.parse(cached));
       } catch {}
 
+      // Verify session with server
       sb.auth.getSession().then(({ data: { session } }) => {
         if (session?.user) {
-          setUser(buildUser(session.user));
+          setUser(buildUser(session.user as SupabaseUser));
         } else {
-          // No active session — user must sign in
           try { localStorage.removeItem(SUPABASE_USER_KEY); } catch {}
           setUser(null);
         }
@@ -94,39 +99,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setLoading(false);
       });
 
-      const { data: { subscription } } = sb.auth.onAuthStateChange((event, session) => {
+      // Keep in sync with auth state changes
+      const { data: { subscription } } = sb.auth.onAuthStateChange((_event, session) => {
         if (session?.user) {
-          setUser(buildUser(session.user));
+          setUser(buildUser(session.user as SupabaseUser));
         } else {
           try { localStorage.removeItem(SUPABASE_USER_KEY); } catch {}
           setUser(null);
         }
         setLoading(false);
       });
+
       return () => subscription.unsubscribe();
     } else {
-      // Supabase NOT configured — allow guest mode for local dev
-      loadGuest();
+      // Supabase not configured — guest mode for local dev
+      try {
+        const stored = localStorage.getItem(GUEST_KEY);
+        setUser(stored ? JSON.parse(stored) : null);
+      } catch {
+        setUser(null);
+      }
       setLoading(false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const loadGuest = () => {
-    try {
-      const stored = localStorage.getItem(GUEST_KEY);
-      if (stored) setUser(JSON.parse(stored));
-      else setUser(null);
-    } catch { setUser(null); }
-  };
-
-  const updateProfile = async (data: { full_name?: string; avatar_url?: string }) => {
+  const updateProfile = async (data: { full_name?: string; avatar_url?: string }): Promise<{ error?: string }> => {
     if (!user) return { error: "Not signed in" };
     if (user.provider === "supabase") {
       const sb = getSupabaseClient();
       if (!sb) return { error: "Supabase not configured" };
       const { data: updated, error } = await sb.auth.updateUser({ data });
       if (error) return { error: error.message };
-      if (updated.user) setUser(buildUser(updated.user));
+      if (updated.user) setUser(buildUser(updated.user as SupabaseUser));
       return {};
     } else {
       const updated: AppUser = { ...user, ...data };
@@ -136,11 +141,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const signUpGuest = async (email: string, password: string, fullName?: string) => {
+  const signUpGuest = async (email: string, password: string, fullName?: string): Promise<{ error?: string }> => {
     if (!email || !password) return { error: "Email and password required" };
     if (password.length < 6) return { error: "Password must be at least 6 characters" };
 
-    // Try real Supabase signup first
     const sb = getSupabaseClient();
     if (sb) {
       const { data, error } = await sb.auth.signUp({
@@ -155,18 +159,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { error: error.message };
       }
       if (data.user) {
-        // If email confirmation required, inform user
+        // Email confirmation required
         if (!data.session) {
           return { error: "Check your email to confirm your account before signing in." };
         }
-        setUser(buildUser(data.user));
+        setUser(buildUser(data.user as SupabaseUser));
         return {};
       }
     }
 
-    // Fallback: local guest mode (only when Supabase not configured)
+    // Fallback: guest mode (only when Supabase not configured)
     const newUser: AppUser = {
-      id: crypto.randomUUID(), email,
+      id: crypto.randomUUID(),
+      email,
       full_name: fullName || email.split("@")[0],
       provider: "guest",
     };
@@ -175,37 +180,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return {};
   };
 
-  const signInGuest = async (email: string, password: string) => {
+  const signInGuest = async (email: string, password: string): Promise<{ error?: string }> => {
     if (!email || !password) return { error: "Email and password required" };
 
-    // Try real Supabase signin first
     const sb = getSupabaseClient();
     if (sb) {
       const { data, error } = await sb.auth.signInWithPassword({ email, password });
       if (error) {
-        // Handle rate limiting gracefully
         if (error.message.includes("Too many requests") || error.status === 429) {
           return { error: "Too many sign-in attempts. Please wait 60 seconds and try again." };
         }
         return { error: error.message };
       }
       if (data.user) {
-        setUser(buildUser(data.user));
+        setUser(buildUser(data.user as SupabaseUser));
         return {};
       }
     }
 
-    // Fallback: local guest mode (only when Supabase not configured)
+    // Fallback: guest mode (only when Supabase not configured)
     try {
       const stored = localStorage.getItem(GUEST_KEY);
       if (stored) {
         const existing: AppUser = JSON.parse(stored);
         if (existing.email === email) { setUser(existing); return {}; }
-        else return { error: "Wrong email or password." };
+        return { error: "Wrong email or password." };
       }
     } catch {}
     const newUser: AppUser = {
-      id: crypto.randomUUID(), email,
+      id: crypto.randomUUID(),
+      email,
       full_name: email.split("@")[0],
       provider: "guest",
     };
@@ -214,7 +218,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return {};
   };
 
-  const signOut = async () => {
+  const signOut = async (): Promise<void> => {
     const sb = getSupabaseClient();
     if (sb) { try { await sb.auth.signOut(); } catch {} }
     try {
@@ -228,19 +232,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const sb = getSupabaseClient();
     if (!sb) return { error: "Supabase not configured. Add your keys to .env.local" };
     try {
-      // Use the Supabase callback URL — this must match Google Console exactly
+      // This URL must be added to Supabase Dashboard → Auth → URL Configuration → Redirect URLs
       const redirectTo = `${window.location.origin}/auth/callback`;
       const { error } = await sb.auth.signInWithOAuth({
         provider: "google",
         options: {
           redirectTo,
-          queryParams: { access_type: "offline", prompt: "consent" },
+          queryParams: { access_type: "offline", prompt: "select_account" },
         },
       });
       if (error) return { error: error.message };
       return {};
-    } catch (e: any) {
-      return { error: e?.message || "Google sign in failed" };
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Google sign in failed";
+      return { error: msg };
     }
   };
 

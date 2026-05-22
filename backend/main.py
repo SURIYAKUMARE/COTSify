@@ -13,6 +13,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.ALLOWED_ORIGINS + [
         "https://cot-sify.vercel.app",
+        "https://cotsify.vercel.app",
         "https://*.vercel.app",
     ],
     allow_credentials=True,

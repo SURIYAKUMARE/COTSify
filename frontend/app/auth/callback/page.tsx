@@ -20,47 +20,69 @@ export default function AuthCallbackPage() {
       }
 
       try {
-        // Exchange the code in the URL for a session
-        const { data, error } = await sb.auth.exchangeCodeForSession(
-          window.location.href
-        );
+        // Check for PKCE flow: ?code=... in URL
+        const params = new URLSearchParams(window.location.search);
+        const code = params.get("code");
+        const errorParam = params.get("error");
+        const errorDescription = params.get("error_description");
 
-        if (error) throw error;
+        // Handle OAuth error returned in URL
+        if (errorParam) {
+          throw new Error(errorDescription || errorParam);
+        }
 
-        if (data.session?.user) {
-          const u = data.session.user;
-          const name =
-            u.user_metadata?.full_name ||
-            u.user_metadata?.name ||
-            u.email?.split("@")[0] ||
-            "User";
-          const avatar =
-            u.user_metadata?.avatar_url ||
-            u.user_metadata?.picture ||
-            "";
-
-          setStatus("success");
-          setMessage(`Welcome, ${name}! Redirecting...`);
-
-          // Small delay so user sees the success state
-          setTimeout(() => router.replace("/"), 1200);
-        } else {
-          // No session — try getSession as fallback
-          const { data: sessionData } = await sb.auth.getSession();
-          if (sessionData.session?.user) {
-            setStatus("success");
-            setMessage("Signed in! Redirecting...");
-            setTimeout(() => router.replace("/"), 1200);
-          } else {
-            throw new Error("No session found after OAuth callback.");
+        if (code) {
+          // PKCE flow — exchange code for session
+          const { data, error } = await sb.auth.exchangeCodeForSession(
+            window.location.href
+          );
+          if (error) throw error;
+          if (data.session?.user) {
+            return handleSuccess(data.session.user);
           }
         }
-      } catch (err: any) {
+
+        // Implicit flow — session is set via hash fragment automatically
+        // detectSessionInUrl: true in createClient handles this, just getSession
+        const { data: sessionData, error: sessionError } = await sb.auth.getSession();
+        if (sessionError) throw sessionError;
+
+        if (sessionData.session?.user) {
+          return handleSuccess(sessionData.session.user);
+        }
+
+        // Wait briefly for onAuthStateChange to fire (implicit flow)
+        await new Promise<void>((resolve, reject) => {
+          const timeout = setTimeout(() => reject(new Error("Sign in timed out. Please try again.")), 5000);
+          const { data: { subscription } } = sb.auth.onAuthStateChange((event, session) => {
+            if (session?.user) {
+              clearTimeout(timeout);
+              subscription.unsubscribe();
+              handleSuccess(session.user);
+              resolve();
+            }
+          });
+        });
+
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : "Sign in failed. Please try again.";
         console.error("OAuth callback error:", err);
         setStatus("error");
-        setMessage(err?.message || "Sign in failed. Please try again.");
+        setMessage(msg);
         setTimeout(() => router.replace("/auth/signin"), 3000);
       }
+    };
+
+    const handleSuccess = (user: { user_metadata?: Record<string, string> ; email?: string }) => {
+      const meta = user.user_metadata || {};
+      const name =
+        meta.full_name ||
+        meta.name ||
+        user.email?.split("@")[0] ||
+        "User";
+      setStatus("success");
+      setMessage(`Welcome, ${name}! Redirecting...`);
+      setTimeout(() => router.replace("/"), 1200);
     };
 
     handleCallback();

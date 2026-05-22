@@ -1,12 +1,13 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 
 let _client: SupabaseClient | null = null;
+let _clientUrl: string | null = null;
+let _clientKey: string | null = null;
 
 export function getSupabaseClient(): SupabaseClient | null {
   if (typeof window === "undefined") return null;
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  // Support both old anon key format and new publishable key format
   const key =
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
@@ -19,8 +20,23 @@ export function getSupabaseClient(): SupabaseClient | null {
     key.includes("placeholder")
   ) return null;
 
+  // Reset singleton if credentials changed (e.g. after env update in dev)
+  if (_client && (_clientUrl !== url || _clientKey !== key)) {
+    _client = null;
+  }
+
   try {
-    if (!_client) _client = createClient(url, key);
+    if (!_client) {
+      _client = createClient(url, key, {
+        auth: {
+          autoRefreshToken: true,
+          persistSession: true,
+          detectSessionInUrl: true,
+        },
+      });
+      _clientUrl = url;
+      _clientKey = key;
+    }
     return _client;
   } catch {
     return null;
