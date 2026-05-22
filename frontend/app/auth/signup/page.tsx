@@ -61,14 +61,26 @@ export default function SignUpPage() {
   const [showPw, setShowPw] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setSuccess("");
     setSubmitting(true);
     const result = await signUpGuest(email, password, fullName);
-    if (result.error) { setError(result.error); setSubmitting(false); }
-    else router.push("/dashboard");
+    if (result.error) {
+      // "Check your email" is actually a success state, not an error
+      if (result.error.toLowerCase().includes("check your email") || result.error.toLowerCase().includes("confirm your account")) {
+        setSuccess(result.error);
+        setSubmitting(false);
+      } else {
+        setError(result.error);
+        setSubmitting(false);
+      }
+    } else {
+      router.push("/dashboard");
+    }
   };
 
   const handleGoogle = async () => {
@@ -151,6 +163,13 @@ export default function SignUpPage() {
 
               {error && (
                 <div className="bg-red-950/50 border border-red-800 text-red-400 text-sm rounded-xl px-4 py-3">{error}</div>
+              )}
+
+              {success && (
+                <div className="bg-green-950/50 border border-green-800 text-green-400 text-sm rounded-xl px-4 py-3 flex items-start gap-2">
+                  <span className="text-lg leading-none">✉️</span>
+                  <span>{success} <Link href="/auth/signin" className="underline font-medium">Sign in here</Link></span>
+                </div>
               )}
 
               {/* Email form */}

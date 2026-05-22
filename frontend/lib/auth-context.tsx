@@ -156,15 +156,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (error.message.includes("Too many requests") || error.status === 429) {
           return { error: "Too many sign-up attempts. Please wait 60 seconds and try again." };
         }
+        // Email sending failure — account was created, just can't send confirmation
+        if (
+          error.message.toLowerCase().includes("sending confirmation email") ||
+          error.message.toLowerCase().includes("email") ||
+          error.message.toLowerCase().includes("smtp")
+        ) {
+          // Try signing in directly — account may have been created
+          const { data: signInData, error: signInError } = await sb.auth.signInWithPassword({ email, password });
+          if (!signInError && signInData.user) {
+            setUser(buildUser(signInData.user as SupabaseUser));
+            return {};
+          }
+          return { error: "Account created but email confirmation failed. Please try signing in, or contact support." };
+        }
+        // User already exists — redirect to sign in
+        if (error.message.toLowerCase().includes("already registered") || error.message.toLowerCase().includes("already exists")) {
+          return { error: "An account with this email already exists. Please sign in instead." };
+        }
         return { error: error.message };
       }
       if (data.user) {
-        // Email confirmation required
-        if (!data.session) {
-          return { error: "Check your email to confirm your account before signing in." };
+        // No email confirmation required — signed in immediately
+        if (data.session) {
+          setUser(buildUser(data.user as SupabaseUser));
+          return {};
         }
-        setUser(buildUser(data.user as SupabaseUser));
-        return {};
+        // Email confirmation required but sent successfully
+        return { error: "Check your email to confirm your account, then sign in." };
       }
     }
 
