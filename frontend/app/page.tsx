@@ -232,25 +232,45 @@ export default function HomePage() {
             <div className="inline-flex items-center gap-2 bg-cyan-950/60 border border-cyan-800/50 text-cyan-400 text-xs px-4 py-1.5 rounded-full mb-4">
               <Users className="w-3 h-3" /> Our Team
             </div>
-            <h2 className="text-3xl font-bold text-white mb-3">Built by AIML Students</h2>
+            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-3">Built by AIML Students</h2>
             <p className="text-gray-400 text-sm">Final year project — Artificial Intelligence & Machine Learning</p>
           </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
             {[
-              { name: "SURIYAKUMAR E", role: "AIML", num: "01", color: "from-cyan-500 to-blue-600" },
-              { name: "JEFFREYNICKALAS M", role: "AIML", num: "02", color: "from-blue-500 to-purple-600" },
-              { name: "JOVITA D", role: "AIML", num: "03", color: "from-purple-500 to-pink-600" },
-              { name: "PREDEEP KV", role: "AIML", num: "04", color: "from-pink-500 to-rose-600" },
+              { name: "SURIYAKUMAR E", role: "Full Stack & Team Lead", num: "01", color: "from-cyan-500 to-blue-600", glow: "hover:shadow-cyan-500/20", border: "hover:border-cyan-700/50", skills: ["Next.js", "FastAPI", "AI"] },
+              { name: "JEFFREYNICKALAS M", role: "AI/ML Engineer", num: "02", color: "from-blue-500 to-purple-600", glow: "hover:shadow-blue-500/20", border: "hover:border-blue-700/50", skills: ["Gemini", "OpenAI", "NLP"] },
+              { name: "JOVITA D", role: "UI/UX & Frontend", num: "03", color: "from-purple-500 to-pink-600", glow: "hover:shadow-purple-500/20", border: "hover:border-purple-700/50", skills: ["Tailwind", "React", "Design"] },
+              { name: "PREDEEP KV", role: "Data & Research Lead", num: "04", color: "from-pink-500 to-rose-600", glow: "hover:shadow-pink-500/20", border: "hover:border-pink-700/50", skills: ["Maps API", "SQL", "Research"] },
             ].map((m) => (
-              <div key={m.name} className="group bg-gray-900/60 border border-gray-800 hover:border-gray-600 rounded-2xl p-6 text-center transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-black/20">
-                <div className={`w-16 h-16 bg-gradient-to-br ${m.color} rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg group-hover:scale-110 transition-transform`}>
-                  <span className="text-white font-bold text-xl">{m.name[0]}</span>
+              <div key={m.name} className={`group relative bg-gray-900/60 border border-gray-800 ${m.border} rounded-2xl p-5 text-center transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl ${m.glow} overflow-hidden`}>
+                {/* Gradient top accent */}
+                <div className={`absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r ${m.color}`} />
+                {/* Subtle glow bg */}
+                <div className={`absolute inset-0 bg-gradient-to-br ${m.color} opacity-0 group-hover:opacity-5 transition-opacity duration-300 pointer-events-none`} />
+
+                <div className="relative">
+                  <div className={`w-16 h-16 bg-gradient-to-br ${m.color} rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                    <span className="text-white font-bold text-2xl">{m.name[0]}</span>
+                  </div>
+                  <div className="text-xs text-gray-600 font-mono mb-1">{m.num}</div>
+                  <h3 className="text-white font-bold text-sm mb-1 group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:bg-clip-text group-hover:from-white group-hover:to-gray-300 transition-all leading-tight">{m.name}</h3>
+                  <p className="text-gray-500 text-xs mb-3">{m.role}</p>
+                  <div className="flex flex-wrap gap-1 justify-center">
+                    {m.skills.map(s => (
+                      <span key={s} className="text-xs bg-gray-800 border border-gray-700 text-gray-400 px-2 py-0.5 rounded-full">{s}</span>
+                    ))}
+                  </div>
                 </div>
-                <div className="text-xs text-gray-600 font-mono mb-1">{m.num}</div>
-                <h3 className="text-white font-bold text-sm mb-1 group-hover:text-cyan-300 transition-colors">{m.name}</h3>
-                <span className="text-xs bg-cyan-950/60 text-cyan-400 border border-cyan-800/50 px-2 py-0.5 rounded-full">{m.role}</span>
               </div>
             ))}
+          </div>
+
+          <div className="text-center">
+            <Link href="/team"
+              className="inline-flex items-center gap-2 bg-gray-900/80 hover:bg-gray-800 border border-gray-700 hover:border-cyan-700 text-gray-300 hover:text-white px-6 py-3 rounded-full transition-all text-sm">
+              View full team profiles & contributions <ChevronRight className="w-4 h-4" />
+            </Link>
           </div>
         </div>
       </section>

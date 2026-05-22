@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/auth-context";
 import {
   Search, LayoutDashboard, User, LogOut, BookOpen,
   Compass, Globe, Menu, X, ChevronRight, Keyboard, GitCompare,
-  GraduationCap, Shield,
+  GraduationCap, Shield, Users,
 } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
 
@@ -35,6 +35,7 @@ const NAV_LINKS = [
   { href: "/learn", icon: <GraduationCap className="w-4 h-4" />, label: "Learn" },
   { href: "/compare", icon: <GitCompare className="w-4 h-4" />, label: "Compare" },
   { href: "https://www.tinkercad.com/circuits", icon: <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18" /></svg>, label: "Simulate", external: true },
+  { href: "/team", icon: <Users className="w-4 h-4" />, label: "Team" },
   { href: "/dashboard", icon: <LayoutDashboard className="w-4 h-4" />, label: "Dashboard" },
   { href: "/profile", icon: <User className="w-4 h-4" />, label: "Profile" },
 ] as const;
