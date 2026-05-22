@@ -81,11 +81,23 @@ function EmailConfirmScreen({ email, onResend }: { email: string; onResend: () =
       </div>
 
       {/* Spam notice */}
-      <div className="bg-amber-950/30 border border-amber-800/40 rounded-xl px-4 py-3 mb-6 flex items-start gap-2">
+      <div className="bg-amber-950/30 border border-amber-800/40 rounded-xl px-4 py-3 mb-4 flex items-start gap-2">
         <span className="text-amber-400 text-sm">⚠️</span>
         <p className="text-amber-300/80 text-xs text-left">
-          Don&apos;t see it? Check your <strong>spam or junk folder</strong>. The email is from <strong>noreply@mail.app.supabase.io</strong>
+          Don&apos;t see it? Check your <strong>spam or junk folder</strong>. The email is from <strong>noreply@mail.app.supabase.io</strong>.
+          If no email arrives in 2 minutes, your account was still created — try signing in directly.
         </p>
+      </div>
+
+      {/* Direct sign in — always visible */}
+      <div className="bg-gray-900/60 border border-gray-700 rounded-xl px-4 py-3 mb-4">
+        <p className="text-gray-400 text-xs mb-2 text-center">Account created? Sign in directly:</p>
+        <Link
+          href="/auth/signin"
+          className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-semibold py-2 rounded-lg text-sm transition-all"
+        >
+          Go to Sign In →
+        </Link>
       </div>
 
       {/* Resend button */}

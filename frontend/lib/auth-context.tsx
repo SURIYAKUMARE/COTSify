@@ -59,11 +59,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       id: supaUser.id,
       email: supaUser.email || supaUser.phone || "",
       full_name:
-        meta.full_name ||
-        meta.name ||
+        meta.full_name || meta.name ||
         meta.email?.split("@")[0] ||
-        supaUser.email?.split("@")[0] ||
-        "User",
+        supaUser.email?.split("@")[0] || "User",
       avatar_url: meta.avatar_url || meta.picture || meta.photo_url || undefined,
       phone: supaUser.phone,
       provider: "supabase",
@@ -76,16 +74,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const sb = getSupabaseClient();
     if (sb) {
-      // Supabase configured — clear any stale guest session
       try { localStorage.removeItem(GUEST_KEY); } catch {}
 
-      // Load cached user for instant render
       try {
         const cached = localStorage.getItem(SUPABASE_USER_KEY);
         if (cached) setUser(JSON.parse(cached));
       } catch {}
 
-      // Verify session with server
       sb.auth.getSession().then(({ data: { session } }) => {
         if (session?.user) {
           setUser(buildUser(session.user as SupabaseUser));
@@ -99,7 +94,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setLoading(false);
       });
 
-      // Keep in sync with auth state changes
       const { data: { subscription } } = sb.auth.onAuthStateChange((_event, session) => {
         if (session?.user) {
           setUser(buildUser(session.user as SupabaseUser));
@@ -112,7 +106,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       return () => subscription.unsubscribe();
     } else {
-      // Supabase not configured — guest mode for local dev
       try {
         const stored = localStorage.getItem(GUEST_KEY);
         setUser(stored ? JSON.parse(stored) : null);
@@ -141,7 +134,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const signUpGuest = async (email: string, password: string, fullName?: string): Promise<{ error?: string; confirmEmail?: boolean }> => {
+  const signUpGuest = async (
+    email: string,
+    password: string,
+    fullName?: string
+  ): Promise<{ error?: string; confirmEmail?: boolean }> => {
     if (!email || !password) return { error: "Email and password required" };
     if (password.length < 6) return { error: "Password must be at least 6 characters" };
 
@@ -152,29 +149,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         password,
         options: { data: { full_name: fullName || email.split("@")[0] } },
       });
+
       if (error) {
         if (error.message.includes("Too many requests") || error.status === 429) {
           return { error: "Too many sign-up attempts. Please wait 60 seconds and try again." };
         }
-        // Email sending failure — account was created, try signing in directly
+        // Email delivery failure — account was created, show confirmation screen
+        // Supabase may still queue/deliver the email even if it returned an error
         if (
           error.message.toLowerCase().includes("sending confirmation email") ||
-          error.message.toLowerCase().includes("smtp")
+          error.message.toLowerCase().includes("smtp") ||
+          error.message.toLowerCase().includes("email")
         ) {
-          const { data: signInData, error: signInError } = await sb.auth.signInWithPassword({ email, password });
-          if (!signInError && signInData.user) {
-            setUser(buildUser(signInData.user as SupabaseUser));
-            return {};
-          }
-          return { error: "Account created but email delivery failed. Please try signing in." };
+          return { confirmEmail: true };
         }
-        if (error.message.toLowerCase().includes("already registered") || error.message.toLowerCase().includes("already exists")) {
+        if (
+          error.message.toLowerCase().includes("already registered") ||
+          error.message.toLowerCase().includes("already exists") ||
+          error.message.toLowerCase().includes("user already")
+        ) {
           return { error: "An account with this email already exists. Please sign in instead." };
         }
         return { error: error.message };
       }
+
       if (data.user) {
-        // Signed in immediately (email confirmation disabled)
+        // Email confirmation disabled — signed in immediately
         if (data.session) {
           setUser(buildUser(data.user as SupabaseUser));
           return {};
@@ -205,6 +205,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (error) {
         if (error.message.includes("Too many requests") || error.status === 429) {
           return { error: "Too many sign-in attempts. Please wait 60 seconds and try again." };
+        }
+        // Email not confirmed yet
+        if (error.message.toLowerCase().includes("email not confirmed")) {
+          return { error: "Please confirm your email first. Check your inbox (and spam folder)." };
         }
         return { error: error.message };
       }
@@ -248,7 +252,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const sb = getSupabaseClient();
     if (!sb) return { error: "Supabase not configured. Add your keys to .env.local" };
     try {
-      // This URL must be added to Supabase Dashboard → Auth → URL Configuration → Redirect URLs
       const redirectTo = `${window.location.origin}/auth/callback`;
       const { error } = await sb.auth.signInWithOAuth({
         provider: "google",
