@@ -104,13 +104,21 @@ export default function AuthCallbackPage() {
               <AlertCircle className="w-8 h-8 text-red-400" />
             </div>
             <h2 className="text-white font-bold text-xl mb-2">Sign in failed</h2>
-            <p className="text-gray-400 text-sm">{message}</p>
-            <p className="text-gray-600 text-xs mt-2">Redirecting to sign in...</p>
+            <p className="text-gray-400 text-sm mb-4">{message}</p>
+            {message.toLowerCase().includes("exchange") && (
+              <div className="bg-amber-950/40 border border-amber-800/50 rounded-xl px-4 py-3 mb-4 text-left max-w-sm mx-auto">
+                <p className="text-amber-300 text-xs font-semibold mb-1">⚠️ Google OAuth not configured</p>
+                <p className="text-amber-200/70 text-xs">
+                  The Google redirect URI in Google Cloud Console doesn&apos;t match Supabase.
+                  Add <code className="bg-amber-900/50 px-1 rounded text-amber-300">https://sdviuodapjzuuootixay.supabase.co/auth/v1/callback</code> to your Google OAuth client&apos;s Authorized redirect URIs.
+                </p>
+              </div>
+            )}
             <button
               onClick={() => router.replace("/auth/signin")}
-              className="mt-4 text-cyan-400 hover:text-cyan-300 text-sm underline"
+              className="mt-2 bg-cyan-500 hover:bg-cyan-400 text-gray-950 font-semibold px-6 py-2 rounded-xl text-sm transition-colors"
             >
-              Go to sign in now
+              Back to Sign in
             </button>
           </>
         )}
