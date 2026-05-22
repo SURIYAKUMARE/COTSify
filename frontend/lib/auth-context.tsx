@@ -16,7 +16,7 @@ interface AuthContextType {
   user: AppUser | null;
   loading: boolean;
   signInGuest: (email: string, password: string) => Promise<{ error?: string }>;
-  signUpGuest: (email: string, password: string, fullName?: string) => Promise<{ error?: string }>;
+  signUpGuest: (email: string, password: string, fullName?: string) => Promise<{ error?: string; confirmEmail?: boolean }>;
   signInWithGoogle: () => Promise<{ error?: string }>;
   signOut: () => Promise<void>;
   updateProfile: (data: { full_name?: string; avatar_url?: string }) => Promise<{ error?: string }>;
@@ -141,7 +141,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const signUpGuest = async (email: string, password: string, fullName?: string): Promise<{ error?: string }> => {
+  const signUpGuest = async (email: string, password: string, fullName?: string): Promise<{ error?: string; confirmEmail?: boolean }> => {
     if (!email || !password) return { error: "Email and password required" };
     if (password.length < 6) return { error: "Password must be at least 6 characters" };
 
@@ -156,34 +156,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (error.message.includes("Too many requests") || error.status === 429) {
           return { error: "Too many sign-up attempts. Please wait 60 seconds and try again." };
         }
-        // Email sending failure — account was created, just can't send confirmation
+        // Email sending failure — account was created, try signing in directly
         if (
           error.message.toLowerCase().includes("sending confirmation email") ||
-          error.message.toLowerCase().includes("email") ||
           error.message.toLowerCase().includes("smtp")
         ) {
-          // Try signing in directly — account may have been created
           const { data: signInData, error: signInError } = await sb.auth.signInWithPassword({ email, password });
           if (!signInError && signInData.user) {
             setUser(buildUser(signInData.user as SupabaseUser));
             return {};
           }
-          return { error: "Account created but email confirmation failed. Please try signing in, or contact support." };
+          return { error: "Account created but email delivery failed. Please try signing in." };
         }
-        // User already exists — redirect to sign in
         if (error.message.toLowerCase().includes("already registered") || error.message.toLowerCase().includes("already exists")) {
           return { error: "An account with this email already exists. Please sign in instead." };
         }
         return { error: error.message };
       }
       if (data.user) {
-        // No email confirmation required — signed in immediately
+        // Signed in immediately (email confirmation disabled)
         if (data.session) {
           setUser(buildUser(data.user as SupabaseUser));
           return {};
         }
-        // Email confirmation required but sent successfully
-        return { error: "Check your email to confirm your account, then sign in." };
+        // Email confirmation required — sent successfully
+        return { confirmEmail: true };
       }
     }
 

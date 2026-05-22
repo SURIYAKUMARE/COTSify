@@ -5,8 +5,8 @@ import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import { getSupabaseClient, isSupabaseConfigured } from "@/lib/supabase";
 import {
-  Cpu, Loader2, Eye, EyeOff, Phone, Mail, ArrowRight,
-  Users, Star, Quote, Zap, Package, Globe,
+  Loader2, Eye, EyeOff, Phone, Mail, ArrowRight,
+  Users, Star, Quote, Zap, Package, Globe, CheckCircle2, RefreshCw,
 } from "lucide-react";
 
 type Mode = "email" | "phone";
@@ -18,29 +18,108 @@ const COMMUNITY_STATS = [
 ];
 
 const TESTIMONIALS = [
-  {
-    quote: "Found all components for my final year project in under a minute. Incredible tool!",
-    author: "Priya S.",
-    role: "B.Tech, NIT Trichy",
-    rating: 5,
-    avatar: "P",
-  },
-  {
-    quote: "The price comparison feature saved me ₹800 on my Arduino project. Highly recommend!",
-    author: "Rahul M.",
-    role: "Hobbyist Maker",
-    rating: 5,
-    avatar: "R",
-  },
-  {
-    quote: "COTsify is a game changer for engineering students. No more manual BOM creation!",
-    author: "Sneha T.",
-    role: "ECE Student, BITS",
-    rating: 5,
-    avatar: "S",
-  },
+  { quote: "Found all components for my final year project in under a minute. Incredible tool!", author: "Priya S.", role: "B.Tech, NIT Trichy", rating: 5, avatar: "P" },
+  { quote: "The price comparison feature saved me ₹800 on my Arduino project. Highly recommend!", author: "Rahul M.", role: "Hobbyist Maker", rating: 5, avatar: "R" },
+  { quote: "COTsify is a game changer for engineering students. No more manual BOM creation!", author: "Sneha T.", role: "ECE Student, BITS", rating: 5, avatar: "S" },
 ];
 
+// ── Email Confirmation Screen ─────────────────────────────────────────────────
+function EmailConfirmScreen({ email, onResend }: { email: string; onResend: () => void }) {
+  const [resending, setResending] = useState(false);
+  const [resent, setResent] = useState(false);
+  const [countdown, setCountdown] = useState(0);
+
+  const handleResend = async () => {
+    setResending(true);
+    await onResend();
+    setResending(false);
+    setResent(true);
+    setCountdown(60);
+  };
+
+  useEffect(() => {
+    if (countdown <= 0) return;
+    const t = setTimeout(() => setCountdown(c => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [countdown]);
+
+  return (
+    <div className="w-full max-w-md mx-auto text-center">
+      {/* Animated envelope */}
+      <div className="relative w-24 h-24 mx-auto mb-6">
+        <div className="w-24 h-24 bg-gradient-to-br from-cyan-500/20 to-blue-600/20 border border-cyan-500/30 rounded-full flex items-center justify-center animate-pulse">
+          <div className="w-16 h-16 bg-gradient-to-br from-cyan-500/30 to-blue-600/30 rounded-full flex items-center justify-center">
+            <span className="text-4xl">✉️</span>
+          </div>
+        </div>
+        <div className="absolute -top-1 -right-1 w-7 h-7 bg-green-500 rounded-full flex items-center justify-center border-2 border-gray-950">
+          <CheckCircle2 className="w-4 h-4 text-white" />
+        </div>
+      </div>
+
+      <h2 className="text-2xl font-bold text-white mb-2">Check your email</h2>
+      <p className="text-gray-400 mb-1">We sent a confirmation link to</p>
+      <p className="text-cyan-400 font-semibold text-lg mb-6 break-all">{email}</p>
+
+      {/* Steps */}
+      <div className="bg-gray-900/60 border border-gray-800 rounded-2xl p-5 mb-6 text-left">
+        <p className="text-gray-400 text-sm font-medium mb-3">Follow these steps:</p>
+        <div className="flex flex-col gap-3">
+          {[
+            { step: "1", text: "Open your email inbox" },
+            { step: "2", text: 'Click the "Confirm your email" button' },
+            { step: "3", text: "You'll be signed in automatically" },
+          ].map(({ step, text }) => (
+            <div key={step} className="flex items-center gap-3">
+              <div className="w-6 h-6 rounded-full bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center flex-shrink-0">
+                <span className="text-cyan-400 text-xs font-bold">{step}</span>
+              </div>
+              <span className="text-gray-300 text-sm">{text}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Spam notice */}
+      <div className="bg-amber-950/30 border border-amber-800/40 rounded-xl px-4 py-3 mb-6 flex items-start gap-2">
+        <span className="text-amber-400 text-sm">⚠️</span>
+        <p className="text-amber-300/80 text-xs text-left">
+          Don&apos;t see it? Check your <strong>spam or junk folder</strong>. The email is from <strong>noreply@mail.app.supabase.io</strong>
+        </p>
+      </div>
+
+      {/* Resend button */}
+      {resent ? (
+        <div className="flex items-center justify-center gap-2 text-green-400 text-sm mb-4">
+          <CheckCircle2 className="w-4 h-4" />
+          Email resent! {countdown > 0 && <span className="text-gray-500">({countdown}s)</span>}
+        </div>
+      ) : (
+        <button
+          onClick={handleResend}
+          disabled={resending || countdown > 0}
+          className="flex items-center justify-center gap-2 text-sm text-gray-400 hover:text-cyan-400 disabled:opacity-40 transition-colors mx-auto mb-4"
+        >
+          {resending ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+          {countdown > 0 ? `Resend in ${countdown}s` : "Resend confirmation email"}
+        </button>
+      )}
+
+      <p className="text-gray-600 text-sm">
+        Wrong email?{" "}
+        <Link href="/auth/signup" className="text-cyan-400 hover:text-cyan-300">
+          Sign up again
+        </Link>
+        {" · "}
+        <Link href="/auth/signin" className="text-cyan-400 hover:text-cyan-300">
+          Sign in
+        </Link>
+      </p>
+    </div>
+  );
+}
+
+// ── Main Signup Page ──────────────────────────────────────────────────────────
 export default function SignUpPage() {
   const router = useRouter();
   const { signUpGuest, signInWithGoogle, user, loading: authLoading } = useAuth();
@@ -61,26 +140,28 @@ export default function SignUpPage() {
   const [showPw, setShowPw] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const [confirmEmail, setConfirmEmail] = useState(false);
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    setSuccess("");
     setSubmitting(true);
     const result = await signUpGuest(email, password, fullName);
-    if (result.error) {
-      // "Check your email" is actually a success state, not an error
-      if (result.error.toLowerCase().includes("check your email") || result.error.toLowerCase().includes("confirm your account")) {
-        setSuccess(result.error);
-        setSubmitting(false);
-      } else {
-        setError(result.error);
-        setSubmitting(false);
-      }
+    if (result.confirmEmail) {
+      setConfirmEmail(true);
+      setSubmitting(false);
+    } else if (result.error) {
+      setError(result.error);
+      setSubmitting(false);
     } else {
       router.push("/dashboard");
     }
+  };
+
+  const handleResend = async () => {
+    const sb = getSupabaseClient();
+    if (!sb) return;
+    await sb.auth.resend({ type: "signup", email });
   };
 
   const handleGoogle = async () => {
@@ -88,7 +169,6 @@ export default function SignUpPage() {
     setSubmitting(true);
     const result = await signInWithGoogle();
     if (result.error) { setError(result.error); setSubmitting(false); }
-    // On success browser redirects to /auth/callback
   };
 
   const handleSendOtp = async (e: React.FormEvent) => {
@@ -113,6 +193,17 @@ export default function SignUpPage() {
     if (error) { setError(error.message); setSubmitting(false); }
     else router.push("/dashboard");
   };
+
+  if (authLoading) return null;
+
+  // ── Email confirmation screen ─────────────────────────────────────────────
+  if (confirmEmail) {
+    return (
+      <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-12">
+        <EmailConfirmScreen email={email} onResend={handleResend} />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-12">
@@ -163,13 +254,6 @@ export default function SignUpPage() {
 
               {error && (
                 <div className="bg-red-950/50 border border-red-800 text-red-400 text-sm rounded-xl px-4 py-3">{error}</div>
-              )}
-
-              {success && (
-                <div className="bg-green-950/50 border border-green-800 text-green-400 text-sm rounded-xl px-4 py-3 flex items-start gap-2">
-                  <span className="text-lg leading-none">✉️</span>
-                  <span>{success} <Link href="/auth/signin" className="underline font-medium">Sign in here</Link></span>
-                </div>
               )}
 
               {/* Email form */}
@@ -261,7 +345,6 @@ export default function SignUpPage() {
 
           {/* ── Right: Community stats + testimonials ──────────────────────── */}
           <div className="hidden lg:flex flex-col gap-5">
-            {/* Join makers */}
             <div className="bg-gray-900/60 border border-gray-800 rounded-2xl p-6 backdrop-blur-sm">
               <div className="flex items-center gap-2 mb-2">
                 <Zap className="w-5 h-5 text-cyan-400" />
@@ -278,8 +361,6 @@ export default function SignUpPage() {
                 ))}
               </div>
             </div>
-
-            {/* Testimonials */}
             <div className="flex flex-col gap-3">
               {TESTIMONIALS.map((t) => (
                 <div key={t.author}
@@ -292,9 +373,7 @@ export default function SignUpPage() {
                       <Star key={i} className="w-3 h-3 text-amber-400 fill-amber-400" />
                     ))}
                   </div>
-                  <p className="text-gray-300 text-sm leading-relaxed mb-3 italic pr-6">
-                    &ldquo;{t.quote}&rdquo;
-                  </p>
+                  <p className="text-gray-300 text-sm leading-relaxed mb-3 italic pr-6">&ldquo;{t.quote}&rdquo;</p>
                   <div className="flex items-center gap-2">
                     <div className="w-7 h-7 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white font-bold text-xs">
                       {t.avatar}
