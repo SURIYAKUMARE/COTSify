@@ -32,6 +32,8 @@ export function getSupabaseClient(): SupabaseClient | null {
           autoRefreshToken: true,
           persistSession: true,
           detectSessionInUrl: true,
+          // Use implicit flow — avoids PKCE code verifier mismatch across redirects
+          flowType: "implicit",
         },
       });
       _clientUrl = url;

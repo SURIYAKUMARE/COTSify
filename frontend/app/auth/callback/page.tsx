@@ -19,42 +19,35 @@ export default function AuthCallbackPage() {
         return;
       }
 
+      // Check for OAuth error in URL params (e.g. user denied access)
+      const params = new URLSearchParams(window.location.search);
+      const errorParam = params.get("error");
+      const errorDescription = params.get("error_description");
+      if (errorParam) {
+        setStatus("error");
+        setMessage(decodeURIComponent(errorDescription || errorParam).replace(/\+/g, " "));
+        setTimeout(() => router.replace("/auth/signin"), 3000);
+        return;
+      }
+
+      // With implicit flow, detectSessionInUrl:true automatically parses the
+      // hash fragment (#access_token=...) and sets the session.
+      // We just need to wait for onAuthStateChange to fire.
       try {
-        // Check for PKCE flow: ?code=... in URL
-        const params = new URLSearchParams(window.location.search);
-        const code = params.get("code");
-        const errorParam = params.get("error");
-        const errorDescription = params.get("error_description");
-
-        // Handle OAuth error returned in URL
-        if (errorParam) {
-          throw new Error(errorDescription || errorParam);
-        }
-
-        if (code) {
-          // PKCE flow — exchange code for session
-          const { data, error } = await sb.auth.exchangeCodeForSession(
-            window.location.href
-          );
-          if (error) throw error;
-          if (data.session?.user) {
-            return handleSuccess(data.session.user);
-          }
-        }
-
-        // Implicit flow — session is set via hash fragment automatically
-        // detectSessionInUrl: true in createClient handles this, just getSession
-        const { data: sessionData, error: sessionError } = await sb.auth.getSession();
-        if (sessionError) throw sessionError;
-
-        if (sessionData.session?.user) {
-          return handleSuccess(sessionData.session.user);
-        }
-
-        // Wait briefly for onAuthStateChange to fire (implicit flow)
         await new Promise<void>((resolve, reject) => {
-          const timeout = setTimeout(() => reject(new Error("Sign in timed out. Please try again.")), 5000);
-          const { data: { subscription } } = sb.auth.onAuthStateChange((event, session) => {
+          const timeout = setTimeout(() => {
+            // Last resort: try getSession directly
+            sb.auth.getSession().then(({ data: { session } }) => {
+              if (session?.user) {
+                handleSuccess(session.user);
+                resolve();
+              } else {
+                reject(new Error("Sign in timed out. Please try again."));
+              }
+            }).catch(reject);
+          }, 3000);
+
+          const { data: { subscription } } = sb.auth.onAuthStateChange((_event, session) => {
             if (session?.user) {
               clearTimeout(timeout);
               subscription.unsubscribe();
@@ -63,7 +56,6 @@ export default function AuthCallbackPage() {
             }
           });
         });
-
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : "Sign in failed. Please try again.";
         console.error("OAuth callback error:", err);
@@ -73,13 +65,9 @@ export default function AuthCallbackPage() {
       }
     };
 
-    const handleSuccess = (user: { user_metadata?: Record<string, string> ; email?: string }) => {
+    const handleSuccess = (user: { user_metadata?: Record<string, string>; email?: string }) => {
       const meta = user.user_metadata || {};
-      const name =
-        meta.full_name ||
-        meta.name ||
-        user.email?.split("@")[0] ||
-        "User";
+      const name = meta.full_name || meta.name || user.email?.split("@")[0] || "User";
       setStatus("success");
       setMessage(`Welcome, ${name}! Redirecting...`);
       setTimeout(() => router.replace("/"), 1200);
@@ -118,6 +106,12 @@ export default function AuthCallbackPage() {
             <h2 className="text-white font-bold text-xl mb-2">Sign in failed</h2>
             <p className="text-gray-400 text-sm">{message}</p>
             <p className="text-gray-600 text-xs mt-2">Redirecting to sign in...</p>
+            <button
+              onClick={() => router.replace("/auth/signin")}
+              className="mt-4 text-cyan-400 hover:text-cyan-300 text-sm underline"
+            >
+              Go to sign in now
+            </button>
           </>
         )}
       </div>
