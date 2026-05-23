@@ -3,10 +3,10 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
-import { isSupabaseConfigured } from "@/lib/supabase";
+import { getSupabaseClient, isSupabaseConfigured } from "@/lib/supabase";
 import {
-  Loader2, Eye, EyeOff, ArrowRight,
-  Bookmark, TrendingUp, Award, Download, CheckCircle, Star, Quote,
+  Loader2, Eye, EyeOff, ArrowRight, RefreshCw, CheckCircle2,
+  Bookmark, TrendingUp, Award, Download, CheckCircle, Star, Quote, Mail,
 } from "lucide-react";
 
 const BENEFITS = [
@@ -46,13 +46,28 @@ export default function SignInPage() {
   const [showPw, setShowPw] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [needsConfirmation, setNeedsConfirmation] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [resent, setResent] = useState(false);
+  const [countdown, setCountdown] = useState(0);
+
+  useEffect(() => {
+    if (countdown <= 0) return;
+    const t = setTimeout(() => setCountdown(c => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [countdown]);
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setNeedsConfirmation(false);
     setSubmitting(true);
     const result = await signInGuest(email, password);
-    if (result.error) {
+    if (result.needsConfirmation) {
+      setNeedsConfirmation(true);
+      setError(result.error || "");
+      setSubmitting(false);
+    } else if (result.error) {
       setError(result.error);
       setSubmitting(false);
     } else {
@@ -60,15 +75,25 @@ export default function SignInPage() {
     }
   };
 
+  const handleResendConfirmation = async () => {
+    const sb = getSupabaseClient();
+    if (!sb || !email) return;
+    setResending(true);
+    await sb.auth.resend({ type: "signup", email });
+    setResending(false);
+    setResent(true);
+    setCountdown(60);
+  };
+
   const handleGoogle = async () => {
     setError("");
+    setNeedsConfirmation(false);
     setSubmitting(true);
     const result = await signInWithGoogle();
     if (result.error) {
       setError(result.error);
       setSubmitting(false);
     }
-    // On success browser redirects to /auth/callback automatically
   };
 
   if (authLoading) return null;
@@ -108,10 +133,41 @@ export default function SignInPage() {
               </div>
 
               {/* Error */}
-              {error && (
+              {error && !needsConfirmation && (
                 <div className="bg-red-950/50 border border-red-800 text-red-400 text-sm rounded-xl px-4 py-3 flex items-start gap-2">
                   <span className="mt-0.5">⚠️</span>
                   <span>{error}</span>
+                </div>
+              )}
+
+              {/* Email not confirmed — show resend option */}
+              {needsConfirmation && (
+                <div className="bg-amber-950/40 border border-amber-800/50 rounded-xl p-4 flex flex-col gap-3">
+                  <div className="flex items-start gap-2">
+                    <Mail className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-amber-300 text-sm font-medium">Email not confirmed</p>
+                      <p className="text-amber-400/70 text-xs mt-0.5">
+                        Check your inbox at <strong>{email}</strong> and click the confirmation link.
+                        Also check your spam folder.
+                      </p>
+                    </div>
+                  </div>
+                  {resent ? (
+                    <div className="flex items-center gap-2 text-green-400 text-xs">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      Confirmation email resent! {countdown > 0 && `(${countdown}s)`}
+                    </div>
+                  ) : (
+                    <button
+                      onClick={handleResendConfirmation}
+                      disabled={resending || countdown > 0}
+                      className="flex items-center justify-center gap-2 text-xs text-amber-400 hover:text-amber-300 bg-amber-950/60 border border-amber-800/50 py-2 rounded-lg transition-colors disabled:opacity-50"
+                    >
+                      {resending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+                      {countdown > 0 ? `Resend in ${countdown}s` : "Resend confirmation email"}
+                    </button>
+                  )}
                 </div>
               )}
 

@@ -15,7 +15,7 @@ export interface AppUser {
 interface AuthContextType {
   user: AppUser | null;
   loading: boolean;
-  signInGuest: (email: string, password: string) => Promise<{ error?: string }>;
+  signInGuest: (email: string, password: string) => Promise<{ error?: string; needsConfirmation?: boolean }>;
   signUpGuest: (email: string, password: string, fullName?: string) => Promise<{ error?: string; confirmEmail?: boolean }>;
   signInWithGoogle: () => Promise<{ error?: string }>;
   signOut: () => Promise<void>;
@@ -196,7 +196,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return {};
   };
 
-  const signInGuest = async (email: string, password: string): Promise<{ error?: string }> => {
+  const signInGuest = async (email: string, password: string): Promise<{ error?: string; needsConfirmation?: boolean }> => {
     if (!email || !password) return { error: "Email and password required" };
 
     const sb = getSupabaseClient();
@@ -206,9 +206,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (error.message.includes("Too many requests") || error.status === 429) {
           return { error: "Too many sign-in attempts. Please wait 60 seconds and try again." };
         }
-        // Email not confirmed yet
+        // Email not confirmed yet — give user a way to resend
         if (error.message.toLowerCase().includes("email not confirmed")) {
-          return { error: "Please confirm your email first. Check your inbox (and spam folder)." };
+          return { needsConfirmation: true, error: "Please confirm your email first. Check your inbox (and spam folder)." };
         }
         return { error: error.message };
       }
