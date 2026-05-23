@@ -159,6 +159,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (
           error.message.toLowerCase().includes("sending confirmation email") ||
           error.message.toLowerCase().includes("smtp") ||
+          error.message.toLowerCase().includes("sending") ||
+          error.message.toLowerCase().includes("invite") ||
           error.message.toLowerCase().includes("email")
         ) {
           return { confirmEmail: true };
