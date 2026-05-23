@@ -10,8 +10,260 @@ import {
   ArrowUpRight, Calendar, Grid, List, Download, StickyNote,
   CheckCircle2, Circle, PlayCircle, Tag, IndianRupee, X,
   ChevronDown, Pencil, Save, BookOpen, Compass, FileText,
-  TrendingUp, Target, Lightbulb,
+  TrendingUp, Target, Lightbulb, Users, ChevronUp,
+  Mail, Star, Award, Brain, Database, Globe, BarChart3, MapPin,
+  Code2,
 } from "lucide-react";
+
+// Github icon (not in lucide-react, use inline SVG)
+const GithubIcon = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+  </svg>
+);
+
+// ── Team Data ─────────────────────────────────────────────────────────────────
+const TEAM_MEMBERS = [
+  {
+    id: 1, name: "SURIYAKUMAR E", role: "Full Stack & Team Lead", num: "01",
+    color: "from-cyan-500 to-blue-600", border: "border-cyan-800/50", bg: "bg-cyan-950/30",
+    tagColor: "text-cyan-400", avatar: "S",
+    tasks: [
+      { done: true,  text: "Next.js 16 frontend architecture" },
+      { done: true,  text: "FastAPI backend with 8 route modules" },
+      { done: true,  text: "Supabase auth + Google OAuth" },
+      { done: true,  text: "Vercel + Render deployment" },
+      { done: true,  text: "AI integration (Gemini + OpenAI)" },
+      { done: false, text: "Performance optimization" },
+    ],
+    skills: ["Next.js", "FastAPI", "Supabase", "AI APIs"],
+    github: "https://github.com/SURIYAKUMARE",
+    email: "suryaaswin000@gmail.com",
+  },
+  {
+    id: 2, name: "JEFFREYNICKALAS M", role: "AI/ML Engineer", num: "02",
+    color: "from-blue-500 to-purple-600", border: "border-blue-800/50", bg: "bg-blue-950/30",
+    tagColor: "text-blue-400", avatar: "J",
+    tasks: [
+      { done: true,  text: "Prompt engineering for BOM extraction" },
+      { done: true,  text: "COTsify AI chat assistant" },
+      { done: true,  text: "Multi-model fallback pipeline" },
+      { done: true,  text: "Component knowledge base (500+)" },
+      { done: false, text: "Fine-tuning response accuracy" },
+      { done: false, text: "Streaming chat responses" },
+    ],
+    skills: ["Gemini API", "OpenAI", "NLP", "Python"],
+    github: "#",
+    email: "jeffrey@example.com",
+  },
+  {
+    id: 3, name: "JOVITA D", role: "UI/UX & Frontend", num: "03",
+    color: "from-purple-500 to-pink-600", border: "border-purple-800/50", bg: "bg-purple-950/30",
+    tagColor: "text-purple-400", avatar: "J",
+    tasks: [
+      { done: true,  text: "Dark-mode UI design system" },
+      { done: true,  text: "Component catalog browser" },
+      { done: true,  text: "Learning modules page" },
+      { done: true,  text: "Mobile responsive design" },
+      { done: false, text: "Animation & micro-interactions" },
+      { done: false, text: "Accessibility improvements" },
+    ],
+    skills: ["Tailwind CSS", "React", "Figma", "Design"],
+    github: "#",
+    email: "jovita@example.com",
+  },
+  {
+    id: 4, name: "PREDEEP KV", role: "Data & Research Lead", num: "04",
+    color: "from-pink-500 to-rose-600", border: "border-pink-800/50", bg: "bg-pink-950/30",
+    tagColor: "text-pink-400", avatar: "P",
+    tasks: [
+      { done: true,  text: "Price comparison engine" },
+      { done: true,  text: "Google Maps Places integration" },
+      { done: true,  text: "Supabase database schema" },
+      { done: true,  text: "Indian market component pricing" },
+      { done: false, text: "Real-time price scraping" },
+      { done: false, text: "Store inventory tracking" },
+    ],
+    skills: ["Maps API", "PostgreSQL", "Research", "Data"],
+    github: "#",
+    email: "predeep@example.com",
+  },
+];
+
+function TeamDashboard() {
+  const [expanded, setExpanded] = useState<number | null>(null);
+  const [editingMember, setEditingMember] = useState<number | null>(null);
+  const [tasks, setTasks] = useState(() =>
+    Object.fromEntries(TEAM_MEMBERS.map(m => [m.id, m.tasks.map(t => ({ ...t }))]))
+  );
+  const [newTask, setNewTask] = useState("");
+
+  const toggleTask = (memberId: number, taskIdx: number) => {
+    setTasks(prev => ({
+      ...prev,
+      [memberId]: prev[memberId].map((t, i) => i === taskIdx ? { ...t, done: !t.done } : t),
+    }));
+  };
+
+  const addTask = (memberId: number) => {
+    if (!newTask.trim()) return;
+    setTasks(prev => ({
+      ...prev,
+      [memberId]: [...prev[memberId], { done: false, text: newTask.trim() }],
+    }));
+    setNewTask("");
+  };
+
+  const removeTask = (memberId: number, taskIdx: number) => {
+    setTasks(prev => ({
+      ...prev,
+      [memberId]: prev[memberId].filter((_, i) => i !== taskIdx),
+    }));
+  };
+
+  return (
+    <div className="mb-8">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-white font-semibold flex items-center gap-2">
+          <Users className="w-4 h-4 text-cyan-400" /> Team Progress
+        </h3>
+        <Link href="/team" className="text-xs text-cyan-400 hover:text-cyan-300 flex items-center gap-1 transition-colors">
+          Full profiles <ExternalLink className="w-3 h-3" />
+        </Link>
+      </div>
+
+      <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        {TEAM_MEMBERS.map(member => {
+          const memberTasks = tasks[member.id];
+          const done = memberTasks.filter(t => t.done).length;
+          const total = memberTasks.length;
+          const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+          const isExpanded = expanded === member.id;
+          const isEditing = editingMember === member.id;
+
+          return (
+            <div key={member.id} className={`group relative bg-gray-900/60 border ${member.border} rounded-2xl overflow-hidden transition-all duration-300`}>
+              {/* Gradient top bar */}
+              <div className={`h-1 w-full bg-gradient-to-r ${member.color}`} />
+
+              <div className="p-4">
+                {/* Header */}
+                <div className="flex items-center gap-3 mb-3">
+                  <div className={`w-10 h-10 bg-gradient-to-br ${member.color} rounded-xl flex items-center justify-center text-white font-bold text-sm flex-shrink-0 shadow-lg`}>
+                    {member.avatar}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-white font-semibold text-xs leading-tight truncate">{member.name}</p>
+                    <p className="text-gray-500 text-xs truncate">{member.role}</p>
+                  </div>
+                  <span className="text-gray-600 font-mono text-xs">{member.num}</span>
+                </div>
+
+                {/* Progress bar */}
+                <div className="mb-3">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs text-gray-500">Progress</span>
+                    <span className={`text-xs font-bold ${member.tagColor}`}>{pct}%</span>
+                  </div>
+                  <div className="h-1.5 bg-gray-800 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full bg-gradient-to-r ${member.color} transition-all duration-500`}
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
+                  <p className="text-gray-600 text-xs mt-1">{done}/{total} tasks done</p>
+                </div>
+
+                {/* Skills */}
+                <div className="flex flex-wrap gap-1 mb-3">
+                  {member.skills.map(s => (
+                    <span key={s} className={`text-xs px-1.5 py-0.5 rounded-md ${member.bg} ${member.tagColor} border ${member.border}`}>{s}</span>
+                  ))}
+                </div>
+
+                {/* Toggle tasks */}
+                <button
+                  onClick={() => setExpanded(isExpanded ? null : member.id)}
+                  className={`w-full flex items-center justify-between text-xs px-3 py-2 rounded-xl border transition-all ${member.bg} ${member.border} ${member.tagColor}`}
+                >
+                  <span>Tasks ({total})</span>
+                  {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                </button>
+
+                {/* Tasks expanded */}
+                {isExpanded && (
+                  <div className="mt-3 flex flex-col gap-1.5">
+                    {memberTasks.map((task, idx) => (
+                      <div key={idx} className="flex items-start gap-2 group/task">
+                        <button
+                          onClick={() => toggleTask(member.id, idx)}
+                          className={`mt-0.5 flex-shrink-0 w-4 h-4 rounded border transition-all ${task.done ? `bg-gradient-to-br ${member.color} border-transparent` : "border-gray-600 hover:border-gray-400"}`}
+                        >
+                          {task.done && <CheckCircle2 className="w-4 h-4 text-white" />}
+                        </button>
+                        <span className={`text-xs flex-1 leading-relaxed ${task.done ? "line-through text-gray-600" : "text-gray-300"}`}>
+                          {task.text}
+                        </span>
+                        {isEditing && (
+                          <button onClick={() => removeTask(member.id, idx)} className="opacity-0 group-hover/task:opacity-100 text-red-500/60 hover:text-red-400 transition-all flex-shrink-0">
+                            <X className="w-3 h-3" />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+
+                    {/* Add task */}
+                    {isEditing && (
+                      <div className="flex gap-1.5 mt-2">
+                        <input
+                          type="text"
+                          value={newTask}
+                          onChange={e => setNewTask(e.target.value)}
+                          onKeyDown={e => e.key === "Enter" && addTask(member.id)}
+                          placeholder="Add task..."
+                          className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-2.5 py-1.5 text-white text-xs placeholder-gray-600 focus:outline-none focus:border-cyan-600"
+                        />
+                        <button
+                          onClick={() => addTask(member.id)}
+                          className={`px-2.5 py-1.5 bg-gradient-to-r ${member.color} text-white text-xs rounded-lg font-medium`}
+                        >
+                          Add
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Edit toggle + social */}
+                    <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-800">
+                      <button
+                        onClick={() => setEditingMember(isEditing ? null : member.id)}
+                        className={`text-xs flex items-center gap-1 px-2.5 py-1 rounded-lg border transition-all ${isEditing ? `${member.bg} ${member.tagColor} ${member.border}` : "text-gray-500 hover:text-gray-300 border-gray-700 hover:border-gray-600"}`}
+                      >
+                        <Pencil className="w-3 h-3" />
+                        {isEditing ? "Done" : "Edit"}
+                      </button>
+                      <div className="flex gap-1.5">
+                        {member.github !== "#" && (
+                          <a href={member.github} target="_blank" rel="noopener noreferrer"
+                            className="p-1.5 text-gray-600 hover:text-white bg-gray-800 hover:bg-gray-700 rounded-lg transition-all">
+                            <GithubIcon className="w-3 h-3" />
+                          </a>
+                        )}
+                        <a href={`mailto:${member.email}`}
+                          className="p-1.5 text-gray-600 hover:text-cyan-400 bg-gray-800 hover:bg-gray-700 rounded-lg transition-all">
+                          <Mail className="w-3 h-3" />
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 export default function DashboardPage() {
   return <RouteGuard><DashboardContent /></RouteGuard>;
@@ -171,6 +423,9 @@ function DashboardContent() {
           ))}
         </div>
       </div>
+
+      {/* ── Team Dashboard ─────────────────────────────────────────────────── */}
+      <TeamDashboard />
 
       {/* ── Project Insights + Recent Activity ────────────────────────────── */}
       {projects.length > 0 && (
