@@ -9,6 +9,7 @@ import {
   GraduationCap, Shield, Users,
 } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
+import KeyboardShortcutsModal from "@/components/KeyboardShortcutsModal";
 
 // Shows Admin link only when admin session is active
 function AdminLink() {
@@ -46,22 +47,32 @@ export default function Navbar() {
   const { user, signOut } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [showShortcut, setShowShortcut] = useState(false);
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
 
   const active = (href: string) =>
     path.startsWith(href)
       ? "text-cyan-400 bg-gray-800"
       : "text-gray-400 hover:text-white hover:bg-gray-800/50";
 
-  // Cmd/Ctrl+K → focus search
+  // Cmd/Ctrl+K → focus search; ? → shortcuts modal; G+x → nav shortcuts
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    const tag = (e.target as HTMLElement).tagName;
+    const isInput = tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT";
+
     if ((e.metaKey || e.ctrlKey) && e.key === "k") {
       e.preventDefault();
       router.push("/search");
-      // Flash shortcut hint
       setShowShortcut(true);
       setTimeout(() => setShowShortcut(false), 1500);
     }
-    if (e.key === "Escape") setMobileOpen(false);
+    if (e.key === "?" && !isInput) {
+      e.preventDefault();
+      setShortcutsOpen(true);
+    }
+    if (e.key === "Escape") {
+      setMobileOpen(false);
+      setShortcutsOpen(false);
+    }
   }, [router]);
 
   useEffect(() => {
@@ -121,6 +132,14 @@ export default function Navbar() {
             >
               <Keyboard className="w-3 h-3" />
               <span>Ctrl+K</span>
+            </button>
+            {/* Shortcuts modal trigger */}
+            <button
+              onClick={() => setShortcutsOpen(true)}
+              className="hidden lg:flex items-center justify-center w-7 h-7 text-gray-600 hover:text-gray-300 bg-gray-900 border border-gray-800 rounded-lg transition-colors"
+              title="Keyboard shortcuts (?)"
+            >
+              <span className="text-xs font-bold">?</span>
             </button>
             {/* Admin link */}
             <AdminLink />
@@ -270,7 +289,7 @@ export default function Navbar() {
             <div className="px-5 py-3 border-t border-gray-800">
               <div className="flex items-center gap-2 text-xs text-gray-600 mb-3">
                 <Keyboard className="w-3.5 h-3.5" />
-                <span>Press <kbd className="bg-gray-800 border border-gray-700 px-1.5 py-0.5 rounded text-gray-400">Ctrl+K</kbd> to search</span>
+                <span>Press <kbd className="bg-gray-800 border border-gray-700 px-1.5 py-0.5 rounded text-gray-400">Ctrl+K</kbd> to search · <kbd className="bg-gray-800 border border-gray-700 px-1.5 py-0.5 rounded text-gray-400">?</kbd> for shortcuts</span>
               </div>
             </div>
 
@@ -294,6 +313,9 @@ export default function Navbar() {
           </div>
         </div>
       )}
+
+      {/* Keyboard shortcuts modal */}
+      <KeyboardShortcutsModal open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
     </>
   );
 }

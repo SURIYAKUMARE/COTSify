@@ -7,7 +7,7 @@ import dynamic from "next/dynamic";
 import {
   Search, Loader2, ExternalLink, Globe, ShoppingCart,
   AlertCircle, RefreshCw, Filter, TrendingDown, Star,
-  Package, Zap, ChevronRight, Bot,
+  Package, Zap, ChevronRight, Bot, Sparkles,
 } from "lucide-react";
 
 const ChatWidget = dynamic(() => import("@/components/ChatWidget"), { ssr: false });
@@ -51,18 +51,59 @@ function GSearchContent() {
   const [filterPlatform, setFilterPlatform] = useState("All");
   const [sortBy, setSortBy] = useState("relevance");
   const [searchStatus, setSearchStatus] = useState<any>(null);
+  const [aiSummary, setAiSummary] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
 
   useEffect(() => {
-    // Check Google Search status
     api.get("/api/search/status").then(({ data }) => setSearchStatus(data)).catch(() => {});
     if (query) doSearch(query);
   }, []);
+
+  const fetchAiSummary = async (q: string) => {
+    setAiSummary("");
+    setAiLoading(true);
+    const prompt = `Give a brief, helpful overview of "${q}" as an electronics component for Indian makers. Include: what it is, key specs, typical use cases, and approximate price in INR. Keep it under 100 words. Be direct and technical.`;
+    // Try OpenAI first
+    try {
+      const key = process.env.NEXT_PUBLIC_OPENAI_API_KEY;
+      if (key) {
+        const res = await fetch("https://api.openai.com/v1/chat/completions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Authorization": `Bearer ${key}` },
+          body: JSON.stringify({ model: "gpt-4o-mini", messages: [{ role: "user", content: prompt }], max_tokens: 200, temperature: 0.5 }),
+        });
+        if (res.ok) {
+          const json = await res.json();
+          const text = json?.choices?.[0]?.message?.content || "";
+          if (text) { setAiSummary(text); setAiLoading(false); return; }
+        }
+      }
+    } catch { /* try Gemini */ }
+    // Try Gemini
+    try {
+      const key = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+      if (key) {
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: prompt }] }], generationConfig: { maxOutputTokens: 200 } }),
+        });
+        if (res.ok) {
+          const json = await res.json();
+          const text = json?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+          if (text) { setAiSummary(text); setAiLoading(false); return; }
+        }
+      }
+    } catch { /* ignore */ }
+    setAiLoading(false);
+  };
 
   const doSearch = async (q: string) => {
     if (!q.trim()) return;
     setLoading(true);
     setError("");
     setResults([]);
+    fetchAiSummary(q); // kick off AI summary in parallel
     try {
       const endpoint = searchType === "products" ? "/api/search/products" : "/api/search/web";
       const { data } = await api.get(`${endpoint}?q=${encodeURIComponent(q)}&num=10`);
@@ -127,25 +168,6 @@ function GSearchContent() {
           Search for any electronic component across Amazon, Flipkart, Robu.in and more — powered by Google.
         </p>
       </div>
-
-      {/* Google Search status banner */}
-      {searchStatus && !searchStatus.configured && (
-        <div className="mb-6 bg-amber-950/40 border border-amber-800/50 rounded-2xl p-4 flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="text-amber-400 font-medium text-sm">Google Custom Search not configured</p>
-            <p className="text-amber-500/70 text-xs mt-1">
-              Showing direct store links. To enable live Google results:
-            </p>
-            <ol className="text-amber-500/70 text-xs mt-2 space-y-1 list-decimal list-inside">
-              <li>Go to <a href="https://programmablesearchengine.google.com" target="_blank" rel="noopener noreferrer" className="underline hover:text-amber-300">programmablesearchengine.google.com</a></li>
-              <li>Create a new search engine → copy the Search Engine ID</li>
-              <li>Get API key from <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener noreferrer" className="underline hover:text-amber-300">Google Cloud Console</a> → enable Custom Search API</li>
-              <li>Add to <code className="bg-amber-950 px-1 rounded">backend/.env</code>: <code className="bg-amber-950 px-1 rounded">GOOGLE_SEARCH_API_KEY</code> and <code className="bg-amber-950 px-1 rounded">GOOGLE_SEARCH_ENGINE_ID</code></li>
-            </ol>
-          </div>
-        </div>
-      )}
 
       {/* Search bar */}
       <form onSubmit={handleSubmit} className="mb-6">
@@ -217,15 +239,31 @@ function GSearchContent() {
         </div>
       )}
 
+      {/* AI Summary panel */}
+      {(aiLoading || aiSummary) && query && (
+        <div className="mb-5 bg-gradient-to-br from-cyan-950/50 to-blue-950/50 border border-cyan-800/40 rounded-2xl p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-6 h-6 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
+              <Sparkles className="w-3.5 h-3.5 text-white" />
+            </div>
+            <span className="text-cyan-400 text-xs font-semibold">AI Overview</span>
+            {aiLoading && <Loader2 className="w-3.5 h-3.5 text-cyan-400 animate-spin" />}
+          </div>
+          {aiLoading && !aiSummary ? (
+            <div className="flex gap-1.5 mt-2">
+              <span className="w-2 h-2 bg-cyan-400/60 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+              <span className="w-2 h-2 bg-cyan-400/60 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+              <span className="w-2 h-2 bg-cyan-400/60 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+            </div>
+          ) : (
+            <p className="text-gray-300 text-sm leading-relaxed">{aiSummary}</p>
+          )}
+        </div>
+      )}
+
       {/* Results */}
       {filtered.length > 0 && (
         <div>
-          {source === "fallback" && (
-            <div className="mb-4 bg-amber-950/40 border border-amber-800/50 rounded-xl px-4 py-3 flex items-center gap-2 text-sm text-amber-400">
-              <AlertCircle className="w-4 h-4 flex-shrink-0" />
-              Showing direct store links. Configure Google Search API for live results.
-            </div>
-          )}
           {/* Results header */}
           <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
             <div className="flex items-center gap-3">
@@ -235,6 +273,11 @@ function GSearchContent() {
               {source === "google" && (
                 <span className="text-xs bg-green-950 text-green-400 border border-green-800 px-2 py-0.5 rounded-full">
                   Live Google results
+                </span>
+              )}
+              {source === "fallback" && (
+                <span className="text-xs bg-blue-950 text-blue-400 border border-blue-800 px-2 py-0.5 rounded-full">
+                  Direct store links
                 </span>
               )}
             </div>

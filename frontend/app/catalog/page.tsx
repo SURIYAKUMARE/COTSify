@@ -9,8 +9,99 @@ import {
   ShoppingCart, GitCompare, Heart, X, ChevronDown,
   Cpu, Zap, Wrench, ExternalLink, BookOpen, TrendingDown,
   Package, Filter, ArrowUpDown, BadgeCheck, Truck, Tag, Clock,
+  Wifi, Radio, Battery, Thermometer, Activity, Settings,
+  CircuitBoard, Layers, Gauge, Volume2, Eye, Flame,
 } from "lucide-react";
 import Link from "next/link";
+
+// ── Smart product image with icon fallback ────────────────────────────────────
+const SUBCATEGORY_ICONS: Record<string, React.ReactNode> = {
+  "Microcontrollers":    <CircuitBoard className="w-12 h-12" />,
+  "Single Board Computers": <Layers className="w-12 h-12" />,
+  "Sensors":             <Activity className="w-12 h-12" />,
+  "Displays":            <Eye className="w-12 h-12" />,
+  "Motor Drivers":       <Settings className="w-12 h-12" />,
+  "Servos":              <Settings className="w-12 h-12" />,
+  "Stepper Motors":      <Settings className="w-12 h-12" />,
+  "DC Motors":           <Settings className="w-12 h-12" />,
+  "Relays":              <Zap className="w-12 h-12" />,
+  "Actuators":           <Volume2 className="w-12 h-12" />,
+  "Pumps":               <Activity className="w-12 h-12" />,
+  "Wireless":            <Wifi className="w-12 h-12" />,
+  "Interface":           <Radio className="w-12 h-12" />,
+  "Power":               <Battery className="w-12 h-12" />,
+  "Prototyping":         <Layers className="w-12 h-12" />,
+  "Wiring":              <Zap className="w-12 h-12" />,
+  "Soldering":           <Flame className="w-12 h-12" />,
+  "Test Equipment":      <Gauge className="w-12 h-12" />,
+  "Chassis":             <Package className="w-12 h-12" />,
+  "Mechanical":          <Wrench className="w-12 h-12" />,
+};
+
+const SUBCATEGORY_COLORS: Record<string, string> = {
+  "Microcontrollers":    "from-cyan-900/60 to-blue-900/60 text-cyan-400",
+  "Single Board Computers": "from-blue-900/60 to-indigo-900/60 text-blue-400",
+  "Sensors":             "from-green-900/60 to-teal-900/60 text-green-400",
+  "Displays":            "from-purple-900/60 to-violet-900/60 text-purple-400",
+  "Motor Drivers":       "from-orange-900/60 to-amber-900/60 text-orange-400",
+  "Servos":              "from-orange-900/60 to-amber-900/60 text-orange-400",
+  "Stepper Motors":      "from-orange-900/60 to-amber-900/60 text-orange-400",
+  "DC Motors":           "from-orange-900/60 to-amber-900/60 text-orange-400",
+  "Relays":              "from-yellow-900/60 to-amber-900/60 text-yellow-400",
+  "Actuators":           "from-pink-900/60 to-rose-900/60 text-pink-400",
+  "Pumps":               "from-teal-900/60 to-cyan-900/60 text-teal-400",
+  "Wireless":            "from-sky-900/60 to-blue-900/60 text-sky-400",
+  "Interface":           "from-indigo-900/60 to-purple-900/60 text-indigo-400",
+  "Power":               "from-amber-900/60 to-yellow-900/60 text-amber-400",
+  "Prototyping":         "from-gray-800/60 to-gray-700/60 text-gray-400",
+  "Wiring":              "from-gray-800/60 to-gray-700/60 text-gray-400",
+  "Soldering":           "from-red-900/60 to-orange-900/60 text-red-400",
+  "Test Equipment":      "from-violet-900/60 to-purple-900/60 text-violet-400",
+  "Chassis":             "from-emerald-900/60 to-green-900/60 text-emerald-400",
+  "Mechanical":          "from-stone-800/60 to-gray-800/60 text-stone-400",
+};
+
+function ProductImage({
+  src, alt, subcategory, className = "", size = "lg",
+}: {
+  src: string; alt: string; subcategory: string;
+  className?: string; size?: "sm" | "md" | "lg";
+}) {
+  const [failed, setFailed] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+
+  const icon = SUBCATEGORY_ICONS[subcategory] ?? <Package className="w-12 h-12" />;
+  const colorClass = SUBCATEGORY_COLORS[subcategory] ?? "from-gray-800/60 to-gray-700/60 text-gray-400";
+
+  const isPlaceholder = src.includes("placehold.co");
+
+  if (failed || isPlaceholder) {
+    return (
+      <div className={`flex flex-col items-center justify-center gap-2 bg-gradient-to-br ${colorClass} w-full h-full rounded-lg ${className}`}>
+        {icon}
+        <span className="text-xs font-medium opacity-70 text-center px-2 leading-tight">{alt}</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className={`relative w-full h-full ${className}`}>
+      {!loaded && (
+        <div className={`absolute inset-0 flex flex-col items-center justify-center gap-2 bg-gradient-to-br ${colorClass} rounded-lg`}>
+          {icon}
+          <span className="text-xs font-medium opacity-70 text-center px-2 leading-tight">{alt}</span>
+        </div>
+      )}
+      <img
+        src={src}
+        alt={alt}
+        className={`w-full h-full object-contain transition-opacity duration-300 ${loaded ? "opacity-100" : "opacity-0"}`}
+        onLoad={() => setLoaded(true)}
+        onError={() => setFailed(true)}
+      />
+    </div>
+  );
+}
 
 const RECENTLY_VIEWED_KEY = "cotsify_recently_viewed";
 
@@ -312,9 +403,13 @@ function CatalogContent() {
               {recentlyViewed.map((p) => (
                 <button key={p.id} onClick={() => handleViewProduct(p)}
                   className="flex items-center gap-3 bg-gray-800/60 hover:bg-gray-800 border border-gray-700 hover:border-cyan-700 rounded-xl p-3 transition-all text-left group">
-                  <div className="w-12 h-12 bg-gray-700 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <img src={p.image_url} alt={p.name} className="max-h-10 max-w-10 object-contain"
-                      onError={(e) => { (e.target as HTMLImageElement).src = `https://placehold.co/40x40/1f2937/06b6d4?text=${encodeURIComponent(p.name.split(" ")[0])}`; }} />
+                  <div className="w-12 h-12 bg-gray-700 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
+                    <ProductImage
+                      src={p.image_url}
+                      alt={p.name}
+                      subcategory={p.subcategory}
+                      size="sm"
+                    />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-white text-xs font-medium truncate group-hover:text-cyan-300 transition-colors">{p.name}</p>
@@ -385,14 +480,18 @@ function ProductGridCard({ product, inCompare, inWishlist, onCompare, onWishlist
   return (
     <div className="group bg-gray-900 border border-gray-800 hover:border-cyan-700 rounded-2xl overflow-hidden transition-all hover:-translate-y-1 hover:shadow-lg hover:shadow-cyan-500/10 flex flex-col">
       {/* Image */}
-      <div className="relative bg-gray-800 p-4 flex items-center justify-center h-44 cursor-pointer" onClick={onView}>
-        <img src={product.image_url} alt={product.name} className="max-h-36 max-w-full object-contain"
-          onError={e => { (e.target as HTMLImageElement).src = `https://placehold.co/160x160/1f2937/06b6d4?text=${encodeURIComponent(product.name.split(" ")[0])}`; }} />
+      <div className="relative bg-gray-800/50 p-4 flex items-center justify-center h-44 cursor-pointer overflow-hidden" onClick={onView}>
+        <ProductImage
+          src={product.image_url}
+          alt={product.name}
+          subcategory={product.subcategory}
+          className="max-h-36"
+        />
         <button onClick={e => { e.stopPropagation(); onWishlist(); }}
-          className={`absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center transition-all ${inWishlist ? "bg-pink-500 text-white" : "bg-gray-700/80 text-gray-400 hover:bg-pink-500/20 hover:text-pink-400"}`}>
+          className={`absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center transition-all z-10 ${inWishlist ? "bg-pink-500 text-white" : "bg-gray-700/80 text-gray-400 hover:bg-pink-500/20 hover:text-pink-400"}`}>
           <Heart className="w-4 h-4" fill={inWishlist ? "currentColor" : "none"} />
         </button>
-        <div className={`absolute top-3 left-3 flex items-center gap-1 text-xs px-2 py-0.5 rounded-full border ${catClass}`}>
+        <div className={`absolute top-3 left-3 flex items-center gap-1 text-xs px-2 py-0.5 rounded-full border z-10 ${catClass}`}>
           {CAT_ICONS[product.category]}
           {product.subcategory}
         </div>
@@ -443,9 +542,13 @@ function ProductListCard({ product, inCompare, inWishlist, onCompare, onWishlist
   const catClass = CAT_COLORS[product.category] || "bg-gray-800 text-gray-400 border-gray-700";
   return (
     <div className="bg-gray-900 border border-gray-800 hover:border-cyan-700 rounded-2xl p-4 flex gap-4 transition-all">
-      <div className="w-24 h-24 bg-gray-800 rounded-xl flex items-center justify-center flex-shrink-0 cursor-pointer" onClick={onView}>
-        <img src={product.image_url} alt={product.name} className="max-h-20 max-w-20 object-contain"
-          onError={e => { (e.target as HTMLImageElement).src = `https://placehold.co/80x80/1f2937/06b6d4?text=${encodeURIComponent(product.name.split(" ")[0])}`; }} />
+      <div className="w-24 h-24 bg-gray-800/50 rounded-xl flex items-center justify-center flex-shrink-0 cursor-pointer overflow-hidden" onClick={onView}>
+        <ProductImage
+          src={product.image_url}
+          alt={product.name}
+          subcategory={product.subcategory}
+          size="sm"
+        />
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-1 flex-wrap">
@@ -500,9 +603,14 @@ function ProductModal({ product, onClose }: { product: CatalogProduct; onClose: 
         <div className="overflow-y-auto flex-1 p-6">
           <div className="grid sm:grid-cols-2 gap-6">
             <div>
-              <div className="bg-gray-900 rounded-2xl p-6 flex items-center justify-center mb-4 h-52">
-                <img src={product.image_url} alt={product.name} className="max-h-44 max-w-full object-contain"
-                  onError={e => { (e.target as HTMLImageElement).src = `https://placehold.co/200x200/111827/06b6d4?text=${encodeURIComponent(product.name.split(" ")[0])}`; }} />
+              <div className="bg-gray-900 rounded-2xl p-6 flex items-center justify-center mb-4 h-52 overflow-hidden">
+                <ProductImage
+                  src={product.image_url}
+                  alt={product.name}
+                  subcategory={product.subcategory}
+                  size="lg"
+                  className="max-h-44"
+                />
               </div>
               <div className="flex items-baseline gap-3 mb-2">
                 <span className="text-3xl font-bold text-cyan-400">{product.price_inr ? `₹${product.price_inr.toLocaleString()}` : "POA"}</span>

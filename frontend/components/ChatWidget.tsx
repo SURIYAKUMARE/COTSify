@@ -24,11 +24,21 @@ const GEMINI_MODELS = [
   "gemini-2.0-flash",
   "gemini-1.5-flash",
   "gemini-1.5-flash-8b",
+  "gemini-pro",
 ];
 
 const CHAT_SYSTEM_PROMPT = `You are COTsify AI, an expert electronics and engineering assistant for Indian makers and students.
-Help with component selection, wiring, pricing in INR, Arduino/ESP32/Raspberry Pi guidance, and project planning.
-Be concise and technical. Include INR prices when mentioning components.`;
+You help with:
+- Component selection and Bill of Materials (BOM) for any electronics project
+- Wiring diagrams and pin connections (Arduino, ESP32, Raspberry Pi, etc.)
+- Price comparison in INR across Amazon, Flipkart, and Robu.in
+- Project planning, difficulty estimation, and cost estimation
+- Troubleshooting circuits and code
+- Explaining electronics concepts clearly
+
+Always be helpful, concise, and technical. Include INR prices when mentioning components.
+Format responses with markdown: use **bold** for component names, bullet points for lists, and ## headings for sections.
+If asked about any project, provide a complete component list with estimated prices in INR.`;
 
 function formatMessage(text: string) {
   const lines = text.split("\n");
@@ -117,8 +127,85 @@ async function callGemini(messages: { role: string; content: string }[]): Promis
   throw new Error("All Gemini models failed or rate limited");
 }
 
-// ── Smart local fallback (no API needed) ─────────────────────────────────────
-function localSmartResponse(message: string): string {
+// ── OpenAI direct call ────────────────────────────────────────────────────────
+async function callOpenAI(messages: { role: string; content: string }[]): Promise<string> {
+  const key = process.env.NEXT_PUBLIC_OPENAI_API_KEY;
+  if (!key) throw new Error("No OpenAI key");
+
+  const res = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${key}`,
+    },
+    body: JSON.stringify({
+      model: "gpt-4o-mini",
+      messages: [
+        { role: "system", content: CHAT_SYSTEM_PROMPT },
+        ...messages.map(m => ({ role: m.role as "user" | "assistant", content: m.content })),
+      ],
+      temperature: 0.7,
+      max_tokens: 1024,
+    }),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error((err as any)?.error?.message || `OpenAI ${res.status}`);
+  }
+
+  const json = await res.json();
+  const text: string = json?.choices?.[0]?.message?.content || "";
+  if (!text) throw new Error("Empty OpenAI response");
+  return text;
+}
+
+// ── OpenAI streaming call ─────────────────────────────────────────────────────
+async function* streamOpenAI(messages: { role: string; content: string }[]): AsyncGenerator<string> {
+  const key = process.env.NEXT_PUBLIC_OPENAI_API_KEY;
+  if (!key) throw new Error("No OpenAI key");
+
+  const res = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${key}`,
+    },
+    body: JSON.stringify({
+      model: "gpt-4o-mini",
+      messages: [
+        { role: "system", content: CHAT_SYSTEM_PROMPT },
+        ...messages.map(m => ({ role: m.role as "user" | "assistant", content: m.content })),
+      ],
+      temperature: 0.7,
+      max_tokens: 1024,
+      stream: true,
+    }),
+  });
+
+  if (!res.ok) throw new Error(`OpenAI ${res.status}`);
+
+  const reader = res.body?.getReader();
+  const decoder = new TextDecoder();
+  if (!reader) return;
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    const chunk = decoder.decode(value);
+    for (const line of chunk.split("\n")) {
+      if (line.startsWith("data: ")) {
+        const data = line.slice(6).trim();
+        if (data === "[DONE]") return;
+        try {
+          const parsed = JSON.parse(data);
+          const delta = parsed?.choices?.[0]?.delta?.content;
+          if (delta) yield delta;
+        } catch { /* ignore */ }
+      }
+    }
+  }
+}
   const msg = message.toLowerCase();
 
   if (["hello", "hi", "hey"].some(w => msg.includes(w))) {
@@ -215,10 +302,34 @@ export default function ChatWidget({ projectContext, inline = false }: { project
     const allMessages = [...messages, userMsg].map(m => ({ role: m.role, content: m.content }));
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
-    // ── 1. Try backend streaming ──────────────────────────────────────────────
+    // ── 1. Try OpenAI streaming (fastest, most reliable) ─────────────────────
+    try {
+      let fullText = "";
+      for await (const chunk of streamOpenAI(allMessages)) {
+        fullText += chunk;
+        setStreamingText(fullText);
+      }
+      if (fullText) {
+        setStreamingText("");
+        addAssistantMessage(fullText);
+        setLoading(false);
+        return;
+      }
+    } catch { /* OpenAI failed — try next */ }
+
+    // ── 2. Try Gemini directly from browser ──────────────────────────────────
+    try {
+      const reply = await callGemini(allMessages);
+      setStreamingText("");
+      addAssistantMessage(reply);
+      setLoading(false);
+      return;
+    } catch { /* Gemini failed — try backend */ }
+
+    // ── 3. Try backend streaming ──────────────────────────────────────────────
     try {
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 8000); // 8s timeout for Render cold start
+      const timeout = setTimeout(() => controller.abort(), 8000);
 
       const response = await fetch(`${backendUrl}/api/chat/stream`, {
         method: "POST",
@@ -245,11 +356,8 @@ export default function ChatWidget({ projectContext, inline = false }: { project
               if (data === "[DONE]") break;
               try {
                 const parsed = JSON.parse(data);
-                if (parsed.content) {
-                  fullText += parsed.content;
-                  setStreamingText(fullText);
-                }
-              } catch { /* ignore parse errors */ }
+                if (parsed.content) { fullText += parsed.content; setStreamingText(fullText); }
+              } catch { /* ignore */ }
             }
           }
         }
@@ -261,13 +369,12 @@ export default function ChatWidget({ projectContext, inline = false }: { project
         setLoading(false);
         return;
       }
-    } catch { /* backend unavailable — try next */ }
+    } catch { /* backend unavailable */ }
 
-    // ── 2. Try backend non-streaming (simpler, more reliable) ────────────────
+    // ── 4. Try backend non-streaming ─────────────────────────────────────────
     try {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 8000);
-
       const res = await fetch(`${backendUrl}/api/chat/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -275,7 +382,6 @@ export default function ChatWidget({ projectContext, inline = false }: { project
         signal: controller.signal,
       });
       clearTimeout(timeout);
-
       if (res.ok) {
         const data = await res.json();
         if (data.message) {
@@ -285,18 +391,9 @@ export default function ChatWidget({ projectContext, inline = false }: { project
           return;
         }
       }
-    } catch { /* backend unavailable — try next */ }
+    } catch { /* backend unavailable */ }
 
-    // ── 3. Try Gemini directly from browser ──────────────────────────────────
-    try {
-      const reply = await callGemini(allMessages);
-      setStreamingText("");
-      addAssistantMessage(reply);
-      setLoading(false);
-      return;
-    } catch { /* Gemini failed — use local */ }
-
-    // ── 4. Local smart response (always works, no API needed) ─────────────────
+    // ── 5. Smart local fallback ───────────────────────────────────────────────
     setStreamingText("");
     addAssistantMessage(localSmartResponse(content));
     setLoading(false);

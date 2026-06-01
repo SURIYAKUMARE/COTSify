@@ -14,6 +14,8 @@ import {
   Mail, Star, Award, Brain, Database, Globe, BarChart3, MapPin,
   Code2,
 } from "lucide-react";
+import FeatureBanner from "@/components/FeatureBanner";
+import RecentSearches from "@/components/RecentSearches";
 
 // Github icon (not in lucide-react, use inline SVG)
 const GithubIcon = ({ className }: { className?: string }) => (
@@ -397,6 +399,18 @@ function DashboardContent() {
           </div>
         ))}
       </div>
+
+      {/* Feature banner */}
+      <FeatureBanner
+        id="dashboard-catalog-tip"
+        variant="tip"
+        message="Browse the Component Catalog to explore 500+ parts with specs, prices, and datasheets — no project needed."
+        action={{ label: "Open Catalog", href: "/catalog" }}
+        className="mb-6"
+      />
+
+      {/* Recent searches */}
+      <RecentSearches compact className="mb-8" />
 
       {/* ── Quick Actions ──────────────────────────────────────────────────── */}
       <div className="mb-8">

@@ -1,9 +1,15 @@
 "use client";
 import { useState } from "react";
 import { Component } from "@/lib/api";
-import { Cpu, Code, Bookmark, BookmarkCheck, ExternalLink, Zap, ShoppingCart, Plus, Check } from "lucide-react";
+import {
+  Cpu, Code, Bookmark, BookmarkCheck, ExternalLink, Zap,
+  ShoppingCart, Check, CircuitBoard, Wifi, Activity,
+  Settings, Battery, Layers, Package,
+} from "lucide-react";
 import { addToCart } from "@/components/ShoppingCart";
 import WiringDiagramModal from "@/components/WiringDiagramModal";
+import ComponentBadge from "@/components/ComponentBadge";
+import { CATALOG_DATA } from "@/lib/catalog-data";
 
 interface Props {
   component: Component;
@@ -14,6 +20,77 @@ interface Props {
 }
 
 const HARDWARE_UNIT_COST = 350;
+
+// Map component name keywords → icon + gradient for the image area
+function getComponentVisual(name: string): { icon: React.ReactNode; gradient: string } {
+  const n = name.toLowerCase();
+  if (n.includes("arduino") || n.includes("esp") || n.includes("raspberry") || n.includes("stm32") || n.includes("attiny") || n.includes("jetson") || n.includes("pico"))
+    return { icon: <CircuitBoard className="w-10 h-10" />, gradient: "from-cyan-900 to-blue-900 text-cyan-400" };
+  if (n.includes("wifi") || n.includes("bluetooth") || n.includes("hc-05") || n.includes("hc-06") || n.includes("nrf") || n.includes("lora") || n.includes("rf") || n.includes("gsm") || n.includes("gps"))
+    return { icon: <Wifi className="w-10 h-10" />, gradient: "from-sky-900 to-blue-900 text-sky-400" };
+  if (n.includes("sensor") || n.includes("dht") || n.includes("bmp") || n.includes("bme") || n.includes("mpu") || n.includes("pir") || n.includes("ultrasonic") || n.includes("ldr") || n.includes("mq-") || n.includes("rfid") || n.includes("soil") || n.includes("flame") || n.includes("rain") || n.includes("sound"))
+    return { icon: <Activity className="w-10 h-10" />, gradient: "from-green-900 to-teal-900 text-green-400" };
+  if (n.includes("motor") || n.includes("servo") || n.includes("stepper") || n.includes("l298") || n.includes("l293") || n.includes("driver") || n.includes("relay") || n.includes("pump"))
+    return { icon: <Settings className="w-10 h-10" />, gradient: "from-orange-900 to-amber-900 text-orange-400" };
+  if (n.includes("battery") || n.includes("charger") || n.includes("regulator") || n.includes("buck") || n.includes("boost") || n.includes("lm78") || n.includes("tp40") || n.includes("18650"))
+    return { icon: <Battery className="w-10 h-10" />, gradient: "from-amber-900 to-yellow-900 text-amber-400" };
+  if (n.includes("oled") || n.includes("lcd") || n.includes("tft") || n.includes("display") || n.includes("matrix") || n.includes("segment"))
+    return { icon: <Layers className="w-10 h-10" />, gradient: "from-purple-900 to-violet-900 text-purple-400" };
+  if (n.includes("breadboard") || n.includes("jumper") || n.includes("solder") || n.includes("multimeter") || n.includes("logic") || n.includes("usb") || n.includes("dupont"))
+    return { icon: <Package className="w-10 h-10" />, gradient: "from-amber-900 to-orange-900 text-amber-400" };
+  if (n.includes("chassis") || n.includes("wheel") || n.includes("arm") || n.includes("standoff"))
+    return { icon: <Settings className="w-10 h-10" />, gradient: "from-emerald-900 to-green-900 text-emerald-400" };
+  // hardware default
+  return { icon: <Cpu className="w-10 h-10" />, gradient: "from-cyan-900 to-blue-900 text-cyan-400" };
+}
+
+// Look up catalog image for this component by name match
+function getCatalogImage(name: string): string | null {
+  const n = name.toLowerCase();
+  const match = CATALOG_DATA.find(p =>
+    p.name.toLowerCase().includes(n) ||
+    n.includes(p.name.toLowerCase().split(" ").slice(0, 2).join(" ").toLowerCase())
+  );
+  if (match && match.image_url && !match.image_url.includes("placehold.co")) {
+    return match.image_url;
+  }
+  return null;
+}
+
+function HardwareImage({ name }: { name: string }) {
+  const [failed, setFailed] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+  const { icon, gradient } = getComponentVisual(name);
+  const imageUrl = getCatalogImage(name);
+
+  const showIcon = !imageUrl || failed;
+
+  return (
+    <div className={`w-full h-28 rounded-xl overflow-hidden flex items-center justify-center bg-gradient-to-br ${gradient} relative`}>
+      {showIcon ? (
+        <div className="flex flex-col items-center gap-1.5 opacity-80">
+          {icon}
+          <span className="text-xs font-medium text-center px-3 leading-tight opacity-70 line-clamp-2">{name}</span>
+        </div>
+      ) : (
+        <>
+          {!loaded && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 opacity-80">
+              {icon}
+            </div>
+          )}
+          <img
+            src={imageUrl!}
+            alt={name}
+            className={`w-full h-full object-contain p-2 transition-opacity duration-300 ${loaded ? "opacity-100" : "opacity-0"}`}
+            onLoad={() => setLoaded(true)}
+            onError={() => setFailed(true)}
+          />
+        </>
+      )}
+    </div>
+  );
+}
 
 export default function ComponentCard({ component, bookmarked, onToggleBookmark, onCompare, projectTitle = "" }: Props) {
   const isHardware = component.category === "hardware";
@@ -36,6 +113,10 @@ export default function ComponentCard({ component, bookmarked, onToggleBookmark,
   return (
     <>
       <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 flex flex-col gap-3 hover:border-cyan-800 transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/20 group">
+
+        {/* Image area — hardware only */}
+        {isHardware && <HardwareImage name={component.name} />}
+
         {/* Header */}
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-2">
@@ -44,9 +125,12 @@ export default function ComponentCard({ component, bookmarked, onToggleBookmark,
             </span>
             <div>
               <h3 className="text-white font-medium text-sm leading-tight group-hover:text-cyan-300 transition-colors">{component.name}</h3>
-              <span className={`text-xs px-1.5 py-0.5 rounded-full ${isHardware ? "bg-cyan-950 text-cyan-400" : "bg-purple-950 text-purple-400"}`}>
-                {component.category}
-              </span>
+              <ComponentBadge
+                label={component.category}
+                variant={isHardware ? "hardware" : "software"}
+                size="xs"
+                className="mt-0.5"
+              />
             </div>
           </div>
           <button

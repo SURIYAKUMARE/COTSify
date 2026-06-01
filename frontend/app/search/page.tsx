@@ -10,6 +10,8 @@ import NearbyStoresPanel from "@/components/NearbyStoresPanel";
 import SearchHistory, { addToSearchHistory, getSearchHistory } from "@/components/SearchHistory";
 import RouteGuard from "@/components/RouteGuard";
 import { useToast } from "@/components/Toast";
+import RecentSearches, { saveRecentSearch } from "@/components/RecentSearches";
+import FeatureBanner from "@/components/FeatureBanner";
 import {
   Search, Loader2, Cpu, Code, MapPin, BarChart3, Save,
   CheckCircle, AlertCircle, BookOpen, Share2, Check,
@@ -84,6 +86,7 @@ function SearchContent() {
     setSaved(false);
     setAiSource(null);
     addToSearchHistory(title.trim());
+    saveRecentSearch(title.trim());
     const fullQuery = description.trim()
       ? `${title}. Additional details: ${description}`
       : title;
@@ -240,11 +243,29 @@ function SearchContent() {
 
       {/* ── Empty state ────────────────────────────────────────────────── */}
       {!loading && !result && !error && (
-        <SearchEmptyState onSelect={title => {
-          setInputValue(title);
-          setQuery(title);
-          handleSearch(title);
-        }} />
+        <div>
+          <FeatureBanner
+            id="search-tip-simulate"
+            variant="tip"
+            message="Tip: After analyzing a project, use the Simulate button to open Tinkercad and test your circuit virtually before buying components."
+            action={{ label: "Learn more", href: "/learn" }}
+            className="max-w-2xl mx-auto mb-6"
+          />
+          <RecentSearches
+            compact
+            onSelect={(title) => {
+              setInputValue(title);
+              setQuery(title);
+              handleSearch(title);
+            }}
+            className="max-w-2xl mx-auto mb-6"
+          />
+          <SearchEmptyState onSelect={title => {
+            setInputValue(title);
+            setQuery(title);
+            handleSearch(title);
+          }} />
+        </div>
       )}
 
       {/* ── Results ────────────────────────────────────────────────────── */}

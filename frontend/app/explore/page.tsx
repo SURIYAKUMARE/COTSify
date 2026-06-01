@@ -2,6 +2,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import RouteGuard from "@/components/RouteGuard";
+import FeatureBanner from "@/components/FeatureBanner";
+import ProgressRing from "@/components/ProgressRing";
 import {
   Compass,
   Search,
@@ -96,11 +98,17 @@ const ALL_CATEGORIES: ("All" | Category)[] = [
 ];
 const ALL_DIFFICULTIES: ("All" | Difficulty)[] = ["All", "Beginner", "Intermediate", "Advanced"];
 
+const MAX_PROJECT_COST = Math.max(...PROJECTS.map(p => p.cost)); // 6500
+
 function ProjectCard({ project }: { project: Project }) {
   const colorClass = CATEGORY_COLORS[project.category];
   const badgeClass = CATEGORY_BADGE[project.category];
   const diffClass = DIFFICULTY_COLORS[project.difficulty];
   const stars = DIFFICULTY_STARS[project.difficulty];
+  const costPct = Math.round((project.cost / MAX_PROJECT_COST) * 100);
+  const ringColor =
+    project.difficulty === "Beginner" ? "#22c55e" :
+    project.difficulty === "Intermediate" ? "#eab308" : "#ef4444";
 
   return (
     <div
@@ -133,17 +141,30 @@ function ProjectCard({ project }: { project: Project }) {
       {/* Description */}
       <p className="text-gray-400 text-xs leading-relaxed flex-1">{project.description}</p>
 
-      {/* Stats row */}
-      <div className="flex items-center gap-3 text-xs text-gray-400">
-        <span className="flex items-center gap-1">
-          <Zap className="w-3.5 h-3.5 text-cyan-400" />
-          <span className="text-white font-semibold">₹{project.cost.toLocaleString()}</span>
-        </span>
-        <span className="text-gray-600">·</span>
-        <span className="flex items-center gap-1">
-          <Package className="w-3.5 h-3.5 text-purple-400" />
-          <span className="text-white font-semibold">{project.components}</span> parts
-        </span>
+      {/* Stats row with ProgressRing */}
+      <div className="flex items-center gap-3">
+        <ProgressRing
+          value={costPct}
+          size={44}
+          strokeWidth={4}
+          color={ringColor}
+          trackColor="#1f2937"
+          showValue={false}
+        >
+          <span className="text-[9px] font-bold text-gray-300 leading-none">
+            {costPct}%
+          </span>
+        </ProgressRing>
+        <div className="flex flex-col gap-0.5 text-xs text-gray-400">
+          <span className="flex items-center gap-1">
+            <Zap className="w-3.5 h-3.5 text-cyan-400" />
+            <span className="text-white font-semibold">₹{project.cost.toLocaleString()}</span>
+          </span>
+          <span className="flex items-center gap-1">
+            <Package className="w-3.5 h-3.5 text-purple-400" />
+            <span className="text-white font-semibold">{project.components}</span> parts
+          </span>
+        </div>
       </div>
 
       {/* Analyze button */}
@@ -234,6 +255,15 @@ function ExplorePage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-8">
+
+        {/* ── Feature banner ─────────────────────────────────────────────── */}
+        <FeatureBanner
+          id="explore-compare-tip"
+          variant="tip"
+          message="New: Use the Compare page to put any two components side-by-side and check specs before buying."
+          action={{ label: "Open Compare", href: "/compare" }}
+          className="mb-6"
+        />
 
         {/* ── Stats bar ──────────────────────────────────────────────────── */}
         <div className="bg-gray-900/60 border border-gray-800 rounded-2xl px-5 py-3 mb-8 flex flex-wrap items-center gap-4 backdrop-blur-sm">

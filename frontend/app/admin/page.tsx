@@ -6,11 +6,12 @@ import {
   Shield, LogOut, Package, Users, BarChart3, MapPin, Edit3,
   Save, X, Plus, Trash2, Eye, TrendingUp, Cpu, Search,
   CheckCircle2, AlertCircle, Store, Star, Phone, Globe,
-  Activity, Layers, ShoppingCart, Zap,
+  Activity, Layers, ShoppingCart, Zap, RotateCcw, IndianRupee,
+  ChevronDown, Filter, Tag, RefreshCw,
 } from "lucide-react";
 
-const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL || "admin@cotsify.com";
-const ADMIN_PASS  = process.env.NEXT_PUBLIC_ADMIN_PASS  || "Cotsify@Admin2025";
+const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL || "suryaaswin000@gmail.com";
+const ADMIN_PASS  = process.env.NEXT_PUBLIC_ADMIN_PASS  || "suryaaswin12";
 const ADMIN_SESSION_KEY = "cotsify_admin_session";
 const OVERRIDES_KEY = "admin_catalog_overrides";
 const SHOPS_KEY = "admin_shops";
@@ -72,19 +73,18 @@ export default function AdminPage() {
           <p className="text-gray-400 text-sm mt-1">COTsify Administration Dashboard</p>
         </div>
 
-        {/* Credentials hint card */}
         <div className="bg-amber-950/40 border border-amber-800/50 rounded-2xl p-4 mb-5">
           <p className="text-amber-400 text-xs font-semibold mb-2 flex items-center gap-1.5">
-            <Shield className="w-3.5 h-3.5" /> Default Admin Credentials
+            <Shield className="w-3.5 h-3.5" /> Admin Credentials
           </p>
           <div className="grid grid-cols-2 gap-2 text-xs">
             <div className="bg-gray-900/60 rounded-xl p-2.5">
               <p className="text-gray-500 mb-0.5">Email</p>
-              <p className="text-white font-mono font-bold">admin@cotsify.com</p>
+              <p className="text-white font-mono font-bold">suryaaswin000@gmail.com</p>
             </div>
             <div className="bg-gray-900/60 rounded-xl p-2.5">
               <p className="text-gray-500 mb-0.5">Password</p>
-              <p className="text-white font-mono font-bold">Cotsify@Admin2025</p>
+              <p className="text-white font-mono font-bold">suryaaswin12</p>
             </div>
           </div>
         </div>
@@ -240,117 +240,288 @@ function OverviewTab() {
 
 function ComponentsTab() {
   const [search, setSearch] = useState("");
-  const [editing, setEditing] = useState<string | null>(null);
-  const [editData, setEditData] = useState<Partial<CatalogProduct>>({});
+  const [catFilter, setCatFilter] = useState("All");
   const [overrides, setOverrides] = useState(getOverrides());
   const [saved, setSaved] = useState<string | null>(null);
+  const [editingProduct, setEditingProduct] = useState<CatalogProduct | null>(null);
+  const [editData, setEditData] = useState<{
+    price_inr: number; price_usd: number; rating: number;
+    reviews: number; stock_qty: number; availability: string; name: string;
+  }>({ price_inr: 0, price_usd: 0, rating: 0, reviews: 0, stock_qty: 0, availability: "in_stock", name: "" });
 
-  const products = CATALOG_DATA.map(p => ({ ...p, ...overrides[p.id] }));
-  const filtered = products.filter(p =>
-    search === "" || p.name.toLowerCase().includes(search.toLowerCase()) || p.subcategory.toLowerCase().includes(search.toLowerCase())
-  );
+  const allProducts = CATALOG_DATA.map(p => ({ ...p, ...overrides[p.id] }));
+  const filtered = allProducts.filter(p => {
+    const matchSearch = search === "" || p.name.toLowerCase().includes(search.toLowerCase()) || p.subcategory.toLowerCase().includes(search.toLowerCase()) || p.id.toLowerCase().includes(search.toLowerCase());
+    const matchCat = catFilter === "All" || p.category === catFilter;
+    return matchSearch && matchCat;
+  });
 
-  const handleEdit = (p: CatalogProduct) => { setEditing(p.id); setEditData({ price_inr: p.price_inr, availability: p.availability, stock_qty: p.stock_qty, name: p.name }); };
-  const handleSave = (id: string) => {
-    saveOverride(id, editData);
-    setOverrides(getOverrides());
-    setEditing(null);
-    setSaved(id);
-    setTimeout(() => setSaved(null), 2000);
+  const openEditor = (p: CatalogProduct) => {
+    setEditingProduct(p);
+    setEditData({ price_inr: p.price_inr || 0, price_usd: p.price_usd || 0, rating: p.rating || 4.0, reviews: p.reviews || 0, stock_qty: p.stock_qty || 0, availability: p.availability || "in_stock", name: p.name });
   };
 
+  const handleSave = () => {
+    if (!editingProduct) return;
+    saveOverride(editingProduct.id, { name: editData.name, price_inr: editData.price_inr, price_usd: editData.price_usd, rating: editData.rating, reviews: editData.reviews, stock_qty: editData.stock_qty, availability: editData.availability });
+    setOverrides(getOverrides());
+    setSaved(editingProduct.id);
+    setTimeout(() => setSaved(null), 2500);
+    setEditingProduct(null);
+  };
+
+  const handleReset = (id: string) => {
+    const o = getOverrides(); delete o[id];
+    localStorage.setItem(OVERRIDES_KEY, JSON.stringify(o));
+    setOverrides(getOverrides());
+  };
+
+  const handleResetAll = () => {
+    if (!confirm("Reset ALL component overrides to original values?")) return;
+    localStorage.removeItem(OVERRIDES_KEY);
+    setOverrides({});
+  };
+
+  const overrideCount = Object.keys(overrides).length;
+
   return (
-    <div>
-      <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
-        <h2 className="text-xl font-bold text-white">Components ({CATALOG_DATA.length})</h2>
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search components..."
-            className="bg-gray-900 border border-gray-800 rounded-xl pl-10 pr-4 py-2 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-cyan-600 w-64" />
-        </div>
-      </div>
-      <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-800 text-gray-500 text-xs">
-                <th className="text-left px-4 py-3">ID</th>
-                <th className="text-left px-4 py-3">Name</th>
-                <th className="text-left px-4 py-3">Category</th>
-                <th className="text-right px-4 py-3">Price (₹)</th>
-                <th className="text-center px-4 py-3">Stock</th>
-                <th className="text-center px-4 py-3">Status</th>
-                <th className="text-center px-4 py-3">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map(p => (
-                <tr key={p.id} className="border-b border-gray-800/50 last:border-0 hover:bg-gray-800/30 transition-colors">
-                  <td className="px-4 py-3 text-gray-500 font-mono text-xs">{p.id}</td>
-                  <td className="px-4 py-3">
-                    {editing === p.id ? (
-                      <input value={editData.name || ""} onChange={e => setEditData(d => ({ ...d, name: e.target.value }))}
-                        className="bg-gray-800 border border-cyan-700 rounded-lg px-2 py-1 text-white text-xs w-48 focus:outline-none" />
-                    ) : (
-                      <span className="text-white font-medium">{p.name}</span>
-                    )}
-                    {overrides[p.id] && <span className="ml-2 text-xs text-orange-400 bg-orange-950/50 border border-orange-800/50 px-1.5 py-0.5 rounded-full">edited</span>}
-                  </td>
-                  <td className="px-4 py-3 text-gray-400 text-xs">{p.subcategory}</td>
-                  <td className="px-4 py-3 text-right">
-                    {editing === p.id ? (
-                      <input type="number" value={editData.price_inr || ""} onChange={e => setEditData(d => ({ ...d, price_inr: Number(e.target.value) }))}
-                        className="bg-gray-800 border border-cyan-700 rounded-lg px-2 py-1 text-cyan-400 text-xs w-24 text-right focus:outline-none" />
-                    ) : (
-                      <span className="text-cyan-400 font-bold">{p.price_inr ? `₹${p.price_inr.toLocaleString()}` : "POA"}</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-center">
-                    {editing === p.id ? (
-                      <input type="number" value={editData.stock_qty || ""} onChange={e => setEditData(d => ({ ...d, stock_qty: Number(e.target.value) }))}
-                        className="bg-gray-800 border border-cyan-700 rounded-lg px-2 py-1 text-white text-xs w-20 text-center focus:outline-none" />
-                    ) : (
-                      <span className="text-gray-300">{p.stock_qty || "—"}</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-center">
-                    {editing === p.id ? (
-                      <select value={editData.availability || "in_stock"} onChange={e => setEditData(d => ({ ...d, availability: e.target.value }))}
-                        className="bg-gray-800 border border-cyan-700 rounded-lg px-2 py-1 text-xs text-white focus:outline-none">
-                        <option value="in_stock">In Stock</option>
-                        <option value="out_of_stock">Out of Stock</option>
-                        <option value="limited">Limited</option>
-                      </select>
-                    ) : (
-                      <span className={`text-xs px-2 py-0.5 rounded-full border ${p.availability === "in_stock" ? "bg-green-950 text-green-400 border-green-800" : p.availability === "limited" ? "bg-yellow-950 text-yellow-400 border-yellow-800" : "bg-red-950 text-red-400 border-red-800"}`}>
-                        {p.availability === "in_stock" ? "In Stock" : p.availability === "limited" ? "Limited" : "Out of Stock"}
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-center">
-                    {editing === p.id ? (
-                      <div className="flex items-center justify-center gap-1">
-                        <button onClick={() => handleSave(p.id)} className="p-1.5 bg-green-950 text-green-400 border border-green-800 rounded-lg hover:bg-green-900 transition-colors"><Save className="w-3.5 h-3.5" /></button>
-                        <button onClick={() => setEditing(null)} className="p-1.5 bg-gray-800 text-gray-400 border border-gray-700 rounded-lg hover:bg-gray-700 transition-colors"><X className="w-3.5 h-3.5" /></button>
-                      </div>
-                    ) : (
-                      <div className="flex items-center justify-center gap-1">
-                        {saved === p.id && <CheckCircle2 className="w-4 h-4 text-green-400" />}
-                        <button onClick={() => handleEdit(p)} className="p-1.5 bg-gray-800 text-gray-400 border border-gray-700 rounded-lg hover:border-cyan-700 hover:text-cyan-400 transition-colors"><Edit3 className="w-3.5 h-3.5" /></button>
-                      </div>
-                    )}
-                  </td>
-                </tr>
+    <div className="flex gap-5">
+      {/* ── Main table ──────────────────────────────────────────────────── */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
+            <h2 className="text-xl font-bold text-white">Components</h2>
+            <span className="text-xs bg-cyan-950 text-cyan-400 border border-cyan-800 px-2 py-0.5 rounded-full">{CATALOG_DATA.length} total</span>
+            {overrideCount > 0 && <span className="text-xs bg-orange-950 text-orange-400 border border-orange-800 px-2 py-0.5 rounded-full">{overrideCount} edited</span>}
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex gap-1">
+              {["All","Electrical","Mechanical","Tools"].map(cat => (
+                <button key={cat} onClick={() => setCatFilter(cat)}
+                  className={`text-xs px-3 py-1.5 rounded-lg border transition-all ${catFilter === cat ? "bg-red-950 text-red-400 border-red-800" : "bg-gray-900 text-gray-500 border-gray-800 hover:text-gray-300"}`}>
+                  {cat}
+                </button>
               ))}
-            </tbody>
-          </table>
+            </div>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" />
+              <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search..."
+                className="bg-gray-900 border border-gray-800 rounded-xl pl-9 pr-4 py-2 text-white text-xs placeholder-gray-500 focus:outline-none focus:border-cyan-600 w-48" />
+            </div>
+            {overrideCount > 0 && (
+              <button onClick={handleResetAll}
+                className="flex items-center gap-1.5 text-xs bg-red-950/60 hover:bg-red-950 text-red-400 border border-red-800/50 px-3 py-2 rounded-xl transition-colors">
+                <RotateCcw className="w-3.5 h-3.5" /> Reset All
+              </button>
+            )}
+          </div>
+        </div>
+        <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-800 bg-gray-900/80">
+                  <th className="text-left px-4 py-3 text-gray-500 text-xs font-medium">Component</th>
+                  <th className="text-left px-4 py-3 text-gray-500 text-xs font-medium">Subcategory</th>
+                  <th className="text-right px-4 py-3 text-gray-500 text-xs font-medium">Price (₹)</th>
+                  <th className="text-center px-4 py-3 text-gray-500 text-xs font-medium">Rating</th>
+                  <th className="text-center px-4 py-3 text-gray-500 text-xs font-medium">Stock</th>
+                  <th className="text-center px-4 py-3 text-gray-500 text-xs font-medium">Status</th>
+                  <th className="text-center px-4 py-3 text-gray-500 text-xs font-medium">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map(p => {
+                  const isEdited = !!overrides[p.id];
+                  return (
+                    <tr key={p.id} className={`border-b border-gray-800/50 last:border-0 transition-colors ${isEdited ? "bg-orange-950/10" : "hover:bg-gray-800/20"}`}>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <div>
+                            <p className="text-white font-medium text-sm leading-tight">{p.name}</p>
+                            <p className="text-gray-600 font-mono text-xs">{p.id}</p>
+                          </div>
+                          {isEdited && <span className="text-xs text-orange-400 bg-orange-950/60 border border-orange-800/50 px-1.5 py-0.5 rounded-full flex-shrink-0">edited</span>}
+                          {saved === p.id && <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0" />}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-gray-400 text-xs">{p.subcategory}</td>
+                      <td className="px-4 py-3 text-right">
+                        <span className="text-cyan-400 font-bold text-sm">{p.price_inr ? `₹${p.price_inr.toLocaleString()}` : "POA"}</span>
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <div className="flex items-center justify-center gap-1">
+                          <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
+                          <span className="text-yellow-400 text-xs font-medium">{p.rating?.toFixed(1) || "—"}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-center text-gray-300 text-xs">{p.stock_qty || "—"}</td>
+                      <td className="px-4 py-3 text-center">
+                        <span className={`text-xs px-2 py-0.5 rounded-full border ${p.availability === "in_stock" ? "bg-green-950 text-green-400 border-green-800" : p.availability === "limited" ? "bg-yellow-950 text-yellow-400 border-yellow-800" : "bg-red-950 text-red-400 border-red-800"}`}>
+                          {p.availability === "in_stock" ? "In Stock" : p.availability === "limited" ? "Limited" : "Out of Stock"}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <div className="flex items-center justify-center gap-1">
+                          <button onClick={() => openEditor(p)} className="p-1.5 bg-gray-800 text-gray-400 border border-gray-700 rounded-lg hover:border-cyan-700 hover:text-cyan-400 transition-colors" title="Edit price & rating">
+                            <Edit3 className="w-3.5 h-3.5" />
+                          </button>
+                          {isEdited && (
+                            <button onClick={() => handleReset(p.id)} className="p-1.5 bg-gray-800 text-gray-400 border border-gray-700 rounded-lg hover:border-orange-700 hover:text-orange-400 transition-colors" title="Reset to original">
+                              <RotateCcw className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          {filtered.length === 0 && <div className="text-center py-12 text-gray-500 text-sm">No components match your search</div>}
         </div>
       </div>
+
+      {/* ── Slide-out editor panel ───────────────────────────────────────── */}
+      {editingProduct && (
+        <div className="w-80 flex-shrink-0">
+          <div className="bg-gray-900 border border-cyan-800/50 rounded-2xl overflow-hidden sticky top-20">
+            <div className="bg-gradient-to-r from-cyan-950/80 to-blue-950/80 border-b border-cyan-800/40 px-5 py-4 flex items-center justify-between">
+              <div>
+                <p className="text-white font-semibold text-sm">Edit Component</p>
+                <p className="text-cyan-400 text-xs mt-0.5 font-mono">{editingProduct.id}</p>
+              </div>
+              <button onClick={() => setEditingProduct(null)} className="text-gray-500 hover:text-white p-1.5 hover:bg-gray-800 rounded-lg transition-colors">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="p-5 flex flex-col gap-4 max-h-[80vh] overflow-y-auto">
+              {/* Name */}
+              <div>
+                <label className="block text-xs text-gray-400 mb-1.5 font-medium">Component Name</label>
+                <input value={editData.name} onChange={e => setEditData(d => ({ ...d, name: e.target.value }))}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:border-cyan-600 transition-colors" />
+              </div>
+              {/* Pricing */}
+              <div className="bg-gray-800/50 rounded-xl p-4 border border-gray-700/50">
+                <p className="text-white text-xs font-semibold mb-3 flex items-center gap-1.5">
+                  <IndianRupee className="w-3.5 h-3.5 text-cyan-400" /> Pricing
+                </p>
+                <div className="grid grid-cols-2 gap-3 mb-3">
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">Price (₹ INR)</label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs">₹</span>
+                      <input type="number" min="0" step="1" value={editData.price_inr}
+                        onChange={e => setEditData(d => ({ ...d, price_inr: Number(e.target.value) }))}
+                        className="w-full bg-gray-800 border border-gray-700 rounded-lg pl-7 pr-3 py-2 text-cyan-400 font-bold text-sm focus:outline-none focus:border-cyan-600 transition-colors" />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">Price ($ USD)</label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs">$</span>
+                      <input type="number" min="0" step="0.01" value={editData.price_usd}
+                        onChange={e => setEditData(d => ({ ...d, price_usd: Number(e.target.value) }))}
+                        className="w-full bg-gray-800 border border-gray-700 rounded-lg pl-7 pr-3 py-2 text-green-400 font-bold text-sm focus:outline-none focus:border-green-600 transition-colors" />
+                    </div>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-600 mb-1.5">Quick set (₹):</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {[49,99,149,199,299,399,499,649,899].map(price => (
+                    <button key={price} onClick={() => setEditData(d => ({ ...d, price_inr: price, price_usd: Math.round(price / 83 * 100) / 100 }))}
+                      className={`text-xs px-2 py-1 rounded-lg border transition-all ${editData.price_inr === price ? "bg-cyan-950 text-cyan-400 border-cyan-700" : "bg-gray-800 text-gray-500 border-gray-700 hover:border-cyan-700 hover:text-cyan-400"}`}>
+                      ₹{price}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {/* Rating */}
+              <div className="bg-gray-800/50 rounded-xl p-4 border border-gray-700/50">
+                <p className="text-white text-xs font-semibold mb-3 flex items-center gap-1.5">
+                  <Star className="w-3.5 h-3.5 text-yellow-400" /> Rating & Reviews
+                </p>
+                <div className="grid grid-cols-2 gap-3 mb-3">
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">Rating (1.0–5.0)</label>
+                    <input type="number" min="1" max="5" step="0.1" value={editData.rating}
+                      onChange={e => setEditData(d => ({ ...d, rating: Math.min(5, Math.max(1, Number(e.target.value))) }))}
+                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-yellow-400 font-bold text-sm focus:outline-none focus:border-yellow-600 transition-colors" />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">Review Count</label>
+                    <input type="number" min="0" step="100" value={editData.reviews}
+                      onChange={e => setEditData(d => ({ ...d, reviews: Number(e.target.value) }))}
+                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-gray-300 text-sm focus:outline-none focus:border-gray-600 transition-colors" />
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  {[1,2,3,4,5].map(i => (
+                    <button key={i} onClick={() => setEditData(d => ({ ...d, rating: i }))} className="transition-transform hover:scale-110">
+                      <Star className={`w-6 h-6 ${i <= Math.round(editData.rating) ? "text-yellow-400 fill-yellow-400" : "text-gray-600"}`} />
+                    </button>
+                  ))}
+                  <span className="text-yellow-400 text-sm font-bold ml-1">{editData.rating.toFixed(1)}</span>
+                </div>
+              </div>
+              {/* Stock */}
+              <div className="bg-gray-800/50 rounded-xl p-4 border border-gray-700/50">
+                <p className="text-white text-xs font-semibold mb-3 flex items-center gap-1.5">
+                  <Package className="w-3.5 h-3.5 text-green-400" /> Stock & Availability
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">Stock Qty</label>
+                    <input type="number" min="0" value={editData.stock_qty}
+                      onChange={e => setEditData(d => ({ ...d, stock_qty: Number(e.target.value) }))}
+                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-green-600 transition-colors" />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">Availability</label>
+                    <select value={editData.availability} onChange={e => setEditData(d => ({ ...d, availability: e.target.value }))}
+                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-green-600 transition-colors">
+                      <option value="in_stock">In Stock</option>
+                      <option value="limited">Limited</option>
+                      <option value="out_of_stock">Out of Stock</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              {/* Original values */}
+              {(() => {
+                const orig = CATALOG_DATA.find(p => p.id === editingProduct.id);
+                if (!orig) return null;
+                return (
+                  <div className="bg-gray-800/30 rounded-xl p-3 border border-gray-800">
+                    <p className="text-gray-600 text-xs font-medium mb-2">Original values</p>
+                    <div className="grid grid-cols-3 gap-2 text-xs">
+                      <div><p className="text-gray-600">Price</p><p className="text-gray-400">₹{orig.price_inr?.toLocaleString() || "—"}</p></div>
+                      <div><p className="text-gray-600">Rating</p><p className="text-gray-400">{orig.rating?.toFixed(1) || "—"}</p></div>
+                      <div><p className="text-gray-600">Stock</p><p className="text-gray-400">{orig.stock_qty || "—"}</p></div>
+                    </div>
+                  </div>
+                );
+              })()}
+              {/* Actions */}
+              <div className="flex gap-2">
+                <button onClick={handleSave}
+                  className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-semibold py-3 rounded-xl text-sm transition-all shadow-lg shadow-cyan-500/20">
+                  <Save className="w-4 h-4" /> Save Changes
+                </button>
+                <button onClick={() => setEditingProduct(null)}
+                  className="px-4 bg-gray-800 hover:bg-gray-700 text-gray-400 border border-gray-700 rounded-xl transition-colors">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-
-function ShopsTab() {
   const [shops, setShopsState] = useState<Shop[]>(getShops());
   const [editing, setEditing] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
