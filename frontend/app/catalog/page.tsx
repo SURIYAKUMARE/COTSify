@@ -68,14 +68,14 @@ function ProductImage({
   className?: string; size?: "sm" | "md" | "lg";
 }) {
   const [failed, setFailed] = useState(false);
-  const [loaded, setLoaded] = useState(false);
 
   const icon = SUBCATEGORY_ICONS[subcategory] ?? <Package className="w-12 h-12" />;
   const colorClass = SUBCATEGORY_COLORS[subcategory] ?? "from-gray-800/60 to-gray-700/60 text-gray-400";
 
-  const isPlaceholder = src.includes("placehold.co") || src === "";
+  const isEmpty = !src || src === "" || src.includes("placehold.co");
 
-  if (failed || isPlaceholder) {
+  // Show icon fallback if no src, placeholder, or image failed
+  if (isEmpty || failed) {
     return (
       <div className={`flex flex-col items-center justify-center gap-2 bg-gradient-to-br ${colorClass} w-full h-full rounded-lg ${className}`}>
         {icon}
@@ -84,20 +84,15 @@ function ProductImage({
     );
   }
 
+  // Local SVG or real image — render directly, no lazy loading needed for local files
   return (
-    <div className={`relative w-full h-full ${className}`}>
-      {!loaded && (
-        <div className={`absolute inset-0 flex flex-col items-center justify-center gap-2 bg-gradient-to-br ${colorClass} rounded-lg`}>
-          {icon}
-          <span className="text-xs font-medium opacity-70 text-center px-2 leading-tight">{alt}</span>
-        </div>
-      )}
+    <div className={`relative w-full h-full flex items-center justify-center bg-gradient-to-br ${colorClass} rounded-lg overflow-hidden ${className}`}>
       <img
         src={src}
         alt={alt}
-        className={`w-full h-full object-contain transition-opacity duration-300 ${loaded ? "opacity-100" : "opacity-0"}`}
-        onLoad={() => setLoaded(true)}
+        className="w-full h-full object-contain p-1"
         onError={() => setFailed(true)}
+        loading="lazy"
       />
     </div>
   );
