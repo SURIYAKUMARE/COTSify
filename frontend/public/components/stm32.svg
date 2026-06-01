@@ -1,0 +1,28 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <rect width="200" height="200" fill="#1a2332"/>
+  <rect x="35" y="40" width="130" height="120" rx="4" fill="#1a3a5c" stroke="#2563eb" stroke-width="2"/>
+  <rect x="70" y="65" width="60" height="55" rx="3" fill="#222" stroke="#444" stroke-width="1.5"/>
+  <text x="100" y="88" font-family="monospace" font-size="7" fill="#3b82f6" text-anchor="middle">STM32</text>
+  <text x="100" y="99" font-family="monospace" font-size="6" fill="#94a3b8" text-anchor="middle">F103C8T6</text>
+  <text x="100" y="110" font-family="monospace" font-size="6" fill="#94a3b8" text-anchor="middle">72MHz ARM</text>
+  <rect x="35" y="50" width="10" height="80" rx="2" fill="#111" stroke="#333" stroke-width="1"/>
+  <line x1="35" y1="58" x2="45" y2="58" stroke="#888" stroke-width="1.5"/>
+  <line x1="35" y1="66" x2="45" y2="66" stroke="#888" stroke-width="1.5"/>
+  <line x1="35" y1="74" x2="45" y2="74" stroke="#888" stroke-width="1.5"/>
+  <line x1="35" y1="82" x2="45" y2="82" stroke="#888" stroke-width="1.5"/>
+  <line x1="35" y1="90" x2="45" y2="90" stroke="#888" stroke-width="1.5"/>
+  <line x1="35" y1="98" x2="45" y2="98" stroke="#888" stroke-width="1.5"/>
+  <line x1="35" y1="106" x2="45" y2="106" stroke="#888" stroke-width="1.5"/>
+  <line x1="35" y1="114" x2="45" y2="114" stroke="#888" stroke-width="1.5"/>
+  <rect x="155" y="50" width="10" height="80" rx="2" fill="#111" stroke="#333" stroke-width="1"/>
+  <line x1="155" y1="58" x2="165" y2="58" stroke="#888" stroke-width="1.5"/>
+  <line x1="155" y1="66" x2="165" y2="66" stroke="#888" stroke-width="1.5"/>
+  <line x1="155" y1="74" x2="165" y2="74" stroke="#888" stroke-width="1.5"/>
+  <line x1="155" y1="82" x2="165" y2="82" stroke="#888" stroke-width="1.5"/>
+  <line x1="155" y1="90" x2="165" y2="90" stroke="#888" stroke-width="1.5"/>
+  <line x1="155" y1="98" x2="165" y2="98" stroke="#888" stroke-width="1.5"/>
+  <line x1="155" y1="106" x2="165" y2="106" stroke="#888" stroke-width="1.5"/>
+  <rect x="80" y="40" width="40" height="10" rx="3" fill="#555" stroke="#777" stroke-width="1"/>
+  <circle cx="155" cy="55" r="3" fill="#3b82f6" opacity="0.9"/>
+  <text x="100" y="192" font-family="Arial,sans-serif" font-size="10" fill="#3b82f6" text-anchor="middle" font-weight="bold">STM32 Blue Pill</text>
+</svg>

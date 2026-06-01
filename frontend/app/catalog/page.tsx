@@ -73,7 +73,7 @@ function ProductImage({
   const icon = SUBCATEGORY_ICONS[subcategory] ?? <Package className="w-12 h-12" />;
   const colorClass = SUBCATEGORY_COLORS[subcategory] ?? "from-gray-800/60 to-gray-700/60 text-gray-400";
 
-  const isPlaceholder = src.includes("placehold.co");
+  const isPlaceholder = src.includes("placehold.co") || src === "";
 
   if (failed || isPlaceholder) {
     return (

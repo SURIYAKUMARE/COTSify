@@ -1,0 +1,45 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <rect width="200" height="200" fill="#1a2332"/>
+  <rect x="15" y="50" width="170" height="100" rx="5" fill="#f5f0e8" stroke="#d4c9a8" stroke-width="2"/>
+  <rect x="15" y="50" width="170" height="15" rx="3" fill="#dc2626" opacity="0.8"/>
+  <rect x="15" y="135" width="170" height="15" rx="3" fill="#1d4ed8" opacity="0.8"/>
+  <rect x="90" y="65" width="20" height="70" rx="2" fill="#d4c9a8"/>
+  <g fill="#555" opacity="0.8">
+    <rect x="25" y="70" width="4" height="4" rx="1"/>
+    <rect x="33" y="70" width="4" height="4" rx="1"/>
+    <rect x="41" y="70" width="4" height="4" rx="1"/>
+    <rect x="49" y="70" width="4" height="4" rx="1"/>
+    <rect x="57" y="70" width="4" height="4" rx="1"/>
+    <rect x="65" y="70" width="4" height="4" rx="1"/>
+    <rect x="73" y="70" width="4" height="4" rx="1"/>
+    <rect x="25" y="78" width="4" height="4" rx="1"/>
+    <rect x="33" y="78" width="4" height="4" rx="1"/>
+    <rect x="41" y="78" width="4" height="4" rx="1"/>
+    <rect x="49" y="78" width="4" height="4" rx="1"/>
+    <rect x="57" y="78" width="4" height="4" rx="1"/>
+    <rect x="65" y="78" width="4" height="4" rx="1"/>
+    <rect x="73" y="78" width="4" height="4" rx="1"/>
+    <rect x="25" y="86" width="4" height="4" rx="1"/>
+    <rect x="33" y="86" width="4" height="4" rx="1"/>
+    <rect x="41" y="86" width="4" height="4" rx="1"/>
+    <rect x="49" y="86" width="4" height="4" rx="1"/>
+    <rect x="57" y="86" width="4" height="4" rx="1"/>
+    <rect x="65" y="86" width="4" height="4" rx="1"/>
+    <rect x="73" y="86" width="4" height="4" rx="1"/>
+    <rect x="113" y="70" width="4" height="4" rx="1"/>
+    <rect x="121" y="70" width="4" height="4" rx="1"/>
+    <rect x="129" y="70" width="4" height="4" rx="1"/>
+    <rect x="137" y="70" width="4" height="4" rx="1"/>
+    <rect x="145" y="70" width="4" height="4" rx="1"/>
+    <rect x="153" y="70" width="4" height="4" rx="1"/>
+    <rect x="161" y="70" width="4" height="4" rx="1"/>
+    <rect x="113" y="78" width="4" height="4" rx="1"/>
+    <rect x="121" y="78" width="4" height="4" rx="1"/>
+    <rect x="129" y="78" width="4" height="4" rx="1"/>
+    <rect x="137" y="78" width="4" height="4" rx="1"/>
+    <rect x="145" y="78" width="4" height="4" rx="1"/>
+    <rect x="153" y="78" width="4" height="4" rx="1"/>
+    <rect x="161" y="78" width="4" height="4" rx="1"/>
+  </g>
+  <text x="100" y="192" font-family="Arial,sans-serif" font-size="10" fill="#f59e0b" text-anchor="middle" font-weight="bold">830pt Breadboard</text>
+</svg>

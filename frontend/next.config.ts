@@ -4,16 +4,13 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "**.supabase.co" },
-      { protocol: "https", hostname: "placehold.co" },
-      { protocol: "https", hostname: "robu.in" },
-      { protocol: "https", hostname: "store.arduino.cc" },
-      { protocol: "https", hostname: "www.raspberrypi.com" },
       { protocol: "https", hostname: "lh3.googleusercontent.com" },
+      { protocol: "https", hostname: "avatars.githubusercontent.com" },
     ],
+    // unoptimized allows <img> tags to work with local /public paths
     unoptimized: true,
   },
   reactStrictMode: true,
-  // v2
 };
 
 export default nextConfig;

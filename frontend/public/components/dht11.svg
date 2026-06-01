@@ -1,0 +1,21 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <rect width="200" height="200" fill="#1a2332"/>
+  <rect x="65" y="40" width="70" height="90" rx="8" fill="#1a3a5c" stroke="#0891b2" stroke-width="2"/>
+  <rect x="72" y="48" width="56" height="74" rx="5" fill="#0f2744"/>
+  <rect x="78" y="55" width="44" height="55" rx="3" fill="#1e3a5f" stroke="#2563eb" stroke-width="1"/>
+  <line x1="78" y1="65" x2="122" y2="65" stroke="#1d4ed8" stroke-width="0.8" opacity="0.6"/>
+  <line x1="78" y1="73" x2="122" y2="73" stroke="#1d4ed8" stroke-width="0.8" opacity="0.6"/>
+  <line x1="78" y1="81" x2="122" y2="81" stroke="#1d4ed8" stroke-width="0.8" opacity="0.6"/>
+  <line x1="78" y1="89" x2="122" y2="89" stroke="#1d4ed8" stroke-width="0.8" opacity="0.6"/>
+  <line x1="78" y1="97" x2="122" y2="97" stroke="#1d4ed8" stroke-width="0.8" opacity="0.6"/>
+  <text x="100" y="78" font-family="monospace" font-size="9" fill="#06b6d4" text-anchor="middle" font-weight="bold">DHT11</text>
+  <line x1="80" y1="130" x2="80" y2="165" stroke="#888" stroke-width="3"/>
+  <line x1="93" y1="130" x2="93" y2="165" stroke="#888" stroke-width="3"/>
+  <line x1="107" y1="130" x2="107" y2="165" stroke="#888" stroke-width="3"/>
+  <line x1="120" y1="130" x2="120" y2="165" stroke="#888" stroke-width="3"/>
+  <text x="80" y="178" font-family="monospace" font-size="7" fill="#94a3b8" text-anchor="middle">VCC</text>
+  <text x="93" y="178" font-family="monospace" font-size="7" fill="#94a3b8" text-anchor="middle">DAT</text>
+  <text x="107" y="178" font-family="monospace" font-size="7" fill="#94a3b8" text-anchor="middle">NC</text>
+  <text x="120" y="178" font-family="monospace" font-size="7" fill="#94a3b8" text-anchor="middle">GND</text>
+  <text x="100" y="192" font-family="Arial,sans-serif" font-size="10" fill="#06b6d4" text-anchor="middle" font-weight="bold">DHT11 Sensor</text>
+</svg>

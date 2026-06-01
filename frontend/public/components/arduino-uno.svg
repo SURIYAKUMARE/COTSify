@@ -1,0 +1,39 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <rect width="200" height="200" fill="#1a2332"/>
+  <!-- PCB board -->
+  <rect x="20" y="30" width="160" height="140" rx="8" fill="#1a5c2a" stroke="#2d8a3e" stroke-width="2"/>
+  <!-- USB connector -->
+  <rect x="20" y="55" width="22" height="30" rx="3" fill="#888" stroke="#aaa" stroke-width="1"/>
+  <rect x="24" y="59" width="14" height="22" rx="2" fill="#555"/>
+  <!-- Power jack -->
+  <circle cx="35" cy="130" r="10" fill="#333" stroke="#666" stroke-width="1.5"/>
+  <circle cx="35" cy="130" r="5" fill="#111"/>
+  <!-- ATmega chip -->
+  <rect x="75" y="75" width="55" height="55" rx="4" fill="#222" stroke="#444" stroke-width="1"/>
+  <text x="102" y="100" font-family="monospace" font-size="7" fill="#06b6d4" text-anchor="middle">ATmega</text>
+  <text x="102" y="110" font-family="monospace" font-size="7" fill="#06b6d4" text-anchor="middle">328P</text>
+  <!-- Pin headers top -->
+  <rect x="55" y="32" width="100" height="8" rx="2" fill="#111" stroke="#333" stroke-width="1"/>
+  <line x1="65" y1="32" x2="65" y2="40" stroke="#888" stroke-width="1.5"/>
+  <line x1="75" y1="32" x2="75" y2="40" stroke="#888" stroke-width="1.5"/>
+  <line x1="85" y1="32" x2="85" y2="40" stroke="#888" stroke-width="1.5"/>
+  <line x1="95" y1="32" x2="95" y2="40" stroke="#888" stroke-width="1.5"/>
+  <line x1="105" y1="32" x2="105" y2="40" stroke="#888" stroke-width="1.5"/>
+  <line x1="115" y1="32" x2="115" y2="40" stroke="#888" stroke-width="1.5"/>
+  <line x1="125" y1="32" x2="125" y2="40" stroke="#888" stroke-width="1.5"/>
+  <line x1="135" y1="32" x2="135" y2="40" stroke="#888" stroke-width="1.5"/>
+  <line x1="145" y1="32" x2="145" y2="40" stroke="#888" stroke-width="1.5"/>
+  <!-- Pin headers bottom -->
+  <rect x="55" y="160" width="100" height="8" rx="2" fill="#111" stroke="#333" stroke-width="1"/>
+  <line x1="65" y1="160" x2="65" y2="168" stroke="#888" stroke-width="1.5"/>
+  <line x1="75" y1="160" x2="75" y2="168" stroke="#888" stroke-width="1.5"/>
+  <line x1="85" y1="160" x2="85" y2="168" stroke="#888" stroke-width="1.5"/>
+  <line x1="95" y1="160" x2="95" y2="168" stroke="#888" stroke-width="1.5"/>
+  <line x1="105" y1="160" x2="105" y2="168" stroke="#888" stroke-width="1.5"/>
+  <line x1="115" y1="160" x2="115" y2="168" stroke="#888" stroke-width="1.5"/>
+  <!-- LED -->
+  <circle cx="155" cy="55" r="4" fill="#22c55e" opacity="0.9"/>
+  <circle cx="155" cy="55" r="6" fill="none" stroke="#22c55e" stroke-width="1" opacity="0.4"/>
+  <!-- Label -->
+  <text x="100" y="190" font-family="Arial,sans-serif" font-size="11" fill="#06b6d4" text-anchor="middle" font-weight="bold">Arduino Uno R3</text>
+</svg>

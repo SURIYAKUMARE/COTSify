@@ -1,0 +1,46 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <rect width="200" height="200" fill="#1a2332"/>
+  <rect x="10" y="30" width="180" height="140" rx="5" fill="#1a5c2a" stroke="#2d8a3e" stroke-width="2"/>
+  <!-- ATmega2560 chip -->
+  <rect x="60" y="65" width="80" height="65" rx="3" fill="#222" stroke="#444" stroke-width="1.5"/>
+  <text x="100" y="93" font-family="monospace" font-size="7" fill="#06b6d4" text-anchor="middle">ATmega</text>
+  <text x="100" y="103" font-family="monospace" font-size="7" fill="#06b6d4" text-anchor="middle">2560</text>
+  <text x="100" y="113" font-family="monospace" font-size="6" fill="#94a3b8" text-anchor="middle">54 I/O</text>
+  <!-- USB -->
+  <rect x="10" y="55" width="22" height="28" rx="3" fill="#888" stroke="#aaa" stroke-width="1"/>
+  <rect x="14" y="59" width="14" height="20" rx="2" fill="#555"/>
+  <!-- Power jack -->
+  <circle cx="25" cy="120" r="9" fill="#333" stroke="#666" stroke-width="1.5"/>
+  <circle cx="25" cy="120" r="4" fill="#111"/>
+  <!-- Top pin headers -->
+  <rect x="45" y="32" width="130" height="8" rx="2" fill="#111" stroke="#333" stroke-width="1"/>
+  <line x1="52" y1="32" x2="52" y2="40" stroke="#888" stroke-width="1.5"/>
+  <line x1="60" y1="32" x2="60" y2="40" stroke="#888" stroke-width="1.5"/>
+  <line x1="68" y1="32" x2="68" y2="40" stroke="#888" stroke-width="1.5"/>
+  <line x1="76" y1="32" x2="76" y2="40" stroke="#888" stroke-width="1.5"/>
+  <line x1="84" y1="32" x2="84" y2="40" stroke="#888" stroke-width="1.5"/>
+  <line x1="92" y1="32" x2="92" y2="40" stroke="#888" stroke-width="1.5"/>
+  <line x1="100" y1="32" x2="100" y2="40" stroke="#888" stroke-width="1.5"/>
+  <line x1="108" y1="32" x2="108" y2="40" stroke="#888" stroke-width="1.5"/>
+  <line x1="116" y1="32" x2="116" y2="40" stroke="#888" stroke-width="1.5"/>
+  <line x1="124" y1="32" x2="124" y2="40" stroke="#888" stroke-width="1.5"/>
+  <line x1="132" y1="32" x2="132" y2="40" stroke="#888" stroke-width="1.5"/>
+  <line x1="140" y1="32" x2="140" y2="40" stroke="#888" stroke-width="1.5"/>
+  <line x1="148" y1="32" x2="148" y2="40" stroke="#888" stroke-width="1.5"/>
+  <line x1="156" y1="32" x2="156" y2="40" stroke="#888" stroke-width="1.5"/>
+  <line x1="164" y1="32" x2="164" y2="40" stroke="#888" stroke-width="1.5"/>
+  <!-- Bottom pin headers -->
+  <rect x="45" y="160" width="130" height="8" rx="2" fill="#111" stroke="#333" stroke-width="1"/>
+  <line x1="52" y1="160" x2="52" y2="168" stroke="#888" stroke-width="1.5"/>
+  <line x1="60" y1="160" x2="60" y2="168" stroke="#888" stroke-width="1.5"/>
+  <line x1="68" y1="160" x2="68" y2="168" stroke="#888" stroke-width="1.5"/>
+  <line x1="76" y1="160" x2="76" y2="168" stroke="#888" stroke-width="1.5"/>
+  <line x1="84" y1="160" x2="84" y2="168" stroke="#888" stroke-width="1.5"/>
+  <line x1="92" y1="160" x2="92" y2="168" stroke="#888" stroke-width="1.5"/>
+  <line x1="100" y1="160" x2="100" y2="168" stroke="#888" stroke-width="1.5"/>
+  <line x1="108" y1="160" x2="108" y2="168" stroke="#888" stroke-width="1.5"/>
+  <line x1="116" y1="160" x2="116" y2="168" stroke="#888" stroke-width="1.5"/>
+  <line x1="124" y1="160" x2="124" y2="168" stroke="#888" stroke-width="1.5"/>
+  <circle cx="165" cy="50" r="4" fill="#22c55e" opacity="0.9"/>
+  <text x="100" y="192" font-family="Arial,sans-serif" font-size="10" fill="#22c55e" text-anchor="middle" font-weight="bold">Arduino Mega 2560</text>
+</svg>

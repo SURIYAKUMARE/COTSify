@@ -1,0 +1,18 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <rect width="200" height="200" fill="#1a2332"/>
+  <rect x="30" y="35" width="140" height="110" rx="6" fill="#0f172a" stroke="#7c3aed" stroke-width="2"/>
+  <rect x="40" y="45" width="120" height="80" rx="4" fill="#000" stroke="#4c1d95" stroke-width="1.5"/>
+  <rect x="45" y="50" width="110" height="70" rx="3" fill="#000"/>
+  <text x="100" y="78" font-family="monospace" font-size="9" fill="#a78bfa" text-anchor="middle">COTsify</text>
+  <text x="100" y="92" font-family="monospace" font-size="7" fill="#7c3aed" text-anchor="middle">Temp: 28.5°C</text>
+  <text x="100" y="104" font-family="monospace" font-size="7" fill="#7c3aed" text-anchor="middle">Hum: 65%</text>
+  <line x1="70" y1="145" x2="70" y2="165" stroke="#888" stroke-width="3"/>
+  <line x1="87" y1="145" x2="87" y2="165" stroke="#888" stroke-width="3"/>
+  <line x1="113" y1="145" x2="113" y2="165" stroke="#888" stroke-width="3"/>
+  <line x1="130" y1="145" x2="130" y2="165" stroke="#888" stroke-width="3"/>
+  <text x="70" y="178" font-family="monospace" font-size="7" fill="#94a3b8" text-anchor="middle">GND</text>
+  <text x="87" y="178" font-family="monospace" font-size="7" fill="#94a3b8" text-anchor="middle">VCC</text>
+  <text x="113" y="178" font-family="monospace" font-size="7" fill="#94a3b8" text-anchor="middle">SCL</text>
+  <text x="130" y="178" font-family="monospace" font-size="7" fill="#94a3b8" text-anchor="middle">SDA</text>
+  <text x="100" y="192" font-family="Arial,sans-serif" font-size="10" fill="#a78bfa" text-anchor="middle" font-weight="bold">0.96" OLED I2C</text>
+</svg>
