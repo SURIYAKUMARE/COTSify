@@ -206,6 +206,9 @@ async function* streamOpenAI(messages: { role: string; content: string }[]): Asy
     }
   }
 }
+
+// ── Smart local fallback (no API needed) ─────────────────────────────────────
+function localSmartResponse(message: string): string {
   const msg = message.toLowerCase();
 
   if (["hello", "hi", "hey"].some(w => msg.includes(w))) {
@@ -251,7 +254,7 @@ async function* streamOpenAI(messages: { role: string; content: string }[]): Asy
     return "## Best Places to Buy in India\n\n**Online:**\n- Robu.in — Cheapest for components\n- Amazon.in — Fast delivery\n- Flipkart — Good prices\n- ElectronicsComp.com\n\n**Offline:**\n- Mumbai: Lamington Road\n- Delhi: Lajpat Rai Market\n- Bangalore: SP Road\n- Chennai: Ritchie Street";
   }
 
-  return `I can help with **"${message}"**!\n\nTry asking:\n- "What components for a ${message}?"\n- "Price of Arduino Uno"\n- "Arduino vs ESP32"\n- "How to wire DHT11 to Arduino"\n\nOr use the **Search** tab for a complete component list with prices! 🔍`;
+  return `I can help with "${message}"!\n\nTry asking:\n- "What components for a ${message}?"\n- "Price of Arduino Uno"\n- "Arduino vs ESP32"\n- "How to wire DHT11 to Arduino"\n\nOr use the Search tab for a complete component list with prices!`;
 }
 
 export default function ChatWidget({ projectContext, inline = false }: { projectContext?: string; inline?: boolean }) {
