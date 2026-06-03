@@ -11,6 +11,10 @@ const nextConfig: NextConfig = {
     unoptimized: true,
   },
   reactStrictMode: true,
+  // Use webpack for production builds (Turbopack has issues with @tailwindcss/postcss)
+  experimental: {
+    turbo: undefined,
+  },
 };
 
 export default nextConfig;
