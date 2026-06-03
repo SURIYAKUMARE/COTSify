@@ -11,6 +11,10 @@ const nextConfig: NextConfig = {
     unoptimized: true,
   },
   reactStrictMode: true,
+  eslint: {
+    // ESLint runs locally; skip during Vercel production build
+    ignoreDuringBuilds: true,
+  },
   webpack(config) {
     config.resolve.alias = {
       ...config.resolve.alias,
