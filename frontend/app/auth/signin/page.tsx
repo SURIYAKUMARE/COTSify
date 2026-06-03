@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/auth-context";
 import { getSupabaseClient, isSupabaseConfigured } from "@/lib/supabase";
 import {
   Loader2, Eye, EyeOff, ArrowRight, RefreshCw, CheckCircle2,
-  Bookmark, TrendingUp, Award, Download, CheckCircle, Star, Quote, Mail,
+  Bookmark, TrendingUp, Award, Download, CheckCircle, Mail,
 } from "lucide-react";
 
 const BENEFITS = [
@@ -16,12 +16,6 @@ const BENEFITS = [
   { icon: <Download className="w-5 h-5" />, title: "Export BOM", desc: "Download full Bill of Materials as text files for any project.", color: "text-green-400", bg: "bg-green-950/50 border-green-800/50" },
 ];
 
-const TESTIMONIAL = {
-  quote: "COTsify saved me hours of research. I got the full component list for my IoT project in seconds!",
-  author: "Arjun K.",
-  role: "ECE Student, VIT",
-  rating: 5,
-};
 
 const GoogleIcon = () => (
   <svg className="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24">
@@ -251,28 +245,7 @@ export default function SignInPage() {
               </div>
             </div>
 
-            <div className="bg-gradient-to-br from-cyan-950/40 to-blue-950/40 border border-cyan-800/30 rounded-2xl p-6 relative overflow-hidden">
-              <div className="absolute top-4 right-4 text-cyan-800/50">
-                <Quote className="w-8 h-8" />
-              </div>
-              <div className="flex gap-1 mb-3">
-                {Array.from({ length: TESTIMONIAL.rating }).map((_, i) => (
-                  <Star key={i} className="w-4 h-4 text-amber-400 fill-amber-400" />
-                ))}
-              </div>
-              <p className="text-gray-300 text-sm leading-relaxed mb-4 italic">
-                &ldquo;{TESTIMONIAL.quote}&rdquo;
-              </p>
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white font-bold text-sm">
-                  {TESTIMONIAL.author[0]}
-                </div>
-                <div>
-                  <p className="text-white font-medium text-sm">{TESTIMONIAL.author}</p>
-                  <p className="text-gray-500 text-xs">{TESTIMONIAL.role}</p>
-                </div>
-              </div>
-            </div>
+
           </div>
 
         </div>
