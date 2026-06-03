@@ -522,6 +522,8 @@ function ComponentsTab() {
     </div>
   );
 }
+
+function ShopsTab() {
   const [shops, setShopsState] = useState<Shop[]>(getShops());
   const [editing, setEditing] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);

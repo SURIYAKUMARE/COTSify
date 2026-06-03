@@ -7,7 +7,7 @@ import RouteGuard from "@/components/RouteGuard";
 import Link from "next/link";
 import {
   GitCompare, ArrowLeft, Check, X, Star, ExternalLink,
-  ShoppingCart, Cpu, Zap, Package, AlertCircle
+  ShoppingCart, Cpu, Zap, Package, AlertCircle, Trophy, TrendingDown
 } from "lucide-react";
 
 function CompareContent() {
@@ -77,6 +77,33 @@ function CompareContent() {
         </div>
       </div>
 
+      {/* Winner banner */}
+      {products.length >= 2 && products.some(p => p.price_inr) && (() => {
+        const priced = products.filter(p => p.price_inr);
+        const cheapest = priced.reduce((a, b) => (a.price_inr || 0) < (b.price_inr || 0) ? a : b);
+        const highestRated = [...products].sort((a, b) => (b.rating || 0) - (a.rating || 0))[0];
+        return (
+          <div className="grid sm:grid-cols-2 gap-4 mb-6">
+            <div className="flex items-center gap-3 bg-green-950/40 border border-green-800/50 rounded-2xl px-4 py-3">
+              <TrendingDown className="w-5 h-5 text-green-400 flex-shrink-0" />
+              <div>
+                <p className="text-xs text-gray-500">Best Price</p>
+                <p className="text-white font-semibold text-sm">{cheapest.name}</p>
+                <p className="text-green-400 font-bold">₹{cheapest.price_inr?.toLocaleString()}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 bg-yellow-950/40 border border-yellow-800/50 rounded-2xl px-4 py-3">
+              <Trophy className="w-5 h-5 text-yellow-400 flex-shrink-0" />
+              <div>
+                <p className="text-xs text-gray-500">Highest Rated</p>
+                <p className="text-white font-semibold text-sm">{highestRated.name}</p>
+                <p className="text-yellow-400 font-bold">{highestRated.rating} ★</p>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
       {error && (
         <div className="flex items-center gap-2 bg-red-950/50 border border-red-800 text-red-400 px-4 py-3 rounded-xl mb-6 text-sm">
           <AlertCircle className="w-4 h-4" /> {error}
@@ -103,9 +130,17 @@ function CompareContent() {
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
-                    <div className="bg-gray-800/50 rounded-xl p-4 flex items-center justify-center h-40 mb-4 border border-gray-700/50">
-                      <img src={p.image_url} alt={p.name} className="max-h-32 max-w-full object-contain"
-                        onError={e => { (e.target as HTMLImageElement).src = `https://placehold.co/160x160/1f2937/06b6d4?text=${encodeURIComponent(p.name.split(" ")[0])}`; }} />
+                    <div className="bg-gray-800/50 rounded-xl p-4 flex items-center justify-center h-40 mb-4 border border-gray-700/50 overflow-hidden">
+                      <img src={p.image_url} alt={p.name}
+                        className="max-h-32 max-w-full object-contain"
+                        onError={e => {
+                          const el = e.target as HTMLImageElement;
+                          el.style.display = "none";
+                          const parent = el.parentElement;
+                          if (parent) {
+                            parent.innerHTML = `<div class="flex flex-col items-center gap-2 opacity-60"><svg xmlns='http://www.w3.org/2000/svg' class='w-12 h-12 text-cyan-400' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18'/></svg><span class='text-xs text-gray-400 text-center px-2'>${p.name}</span></div>`;
+                          }
+                        }} />
                     </div>
                     <div className="text-xs text-cyan-400 font-medium mb-1">{p.manufacturer}</div>
                     <h3 className="text-white font-bold text-lg mb-1 leading-tight">{p.name}</h3>
