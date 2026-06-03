@@ -133,7 +133,7 @@ export default function SignUpPage() {
   const { signUpGuest, signInWithGoogle, user, loading: authLoading } = useAuth();
 
   useEffect(() => {
-    if (!authLoading && user) router.replace("/");
+    if (!authLoading && user) router.replace("/dashboard");
   }, [user, authLoading, router]);
 
   const supabaseReady = isSupabaseConfigured();

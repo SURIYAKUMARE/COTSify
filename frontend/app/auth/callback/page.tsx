@@ -70,7 +70,7 @@ export default function AuthCallbackPage() {
       const name = meta.full_name || meta.name || user.email?.split("@")[0] || "User";
       setStatus("success");
       setMessage(`Welcome, ${name}! Redirecting...`);
-      setTimeout(() => router.replace("/"), 1200);
+      setTimeout(() => router.replace("/dashboard"), 1200);
     };
 
     handleCallback();

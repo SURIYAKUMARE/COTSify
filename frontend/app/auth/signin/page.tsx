@@ -37,7 +37,7 @@ export default function SignInPage() {
   const { signInGuest, signInWithGoogle, user, loading: authLoading } = useAuth();
 
   useEffect(() => {
-    if (!authLoading && user) router.replace("/");
+    if (!authLoading && user) router.replace("/dashboard");
   }, [user, authLoading, router]);
 
   const supabaseReady = isSupabaseConfigured();
@@ -71,7 +71,7 @@ export default function SignInPage() {
       setError(result.error);
       setSubmitting(false);
     } else {
-      router.replace("/");
+      router.replace("/dashboard");
     }
   };
 

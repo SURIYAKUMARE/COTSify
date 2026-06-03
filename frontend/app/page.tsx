@@ -55,9 +55,7 @@ export default function HomePage() {
   const [typed, setTyped] = useState("");
   const [deleting, setDeleting] = useState(false);
 
-  useEffect(() => {
-    if (!loading && !user) router.replace("/auth/signin");
-  }, [user, loading, router]);
+  // No redirect — landing page is public
 
   // Typewriter
   useEffect(() => {
@@ -79,7 +77,6 @@ export default function HomePage() {
       <Loader2 className="w-8 h-8 text-cyan-400 animate-spin" />
     </div>
   );
-  if (!user) return null;
 
   return (
     <div className="flex flex-col">
