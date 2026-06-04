@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth-context";
 import Navbar from "@/components/Navbar";
@@ -13,6 +14,14 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`h-full`}>
+      <head>
+        <Script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8272748311444011"
+          crossOrigin="anonymous"
+          strategy="afterInteractive"
+        />
+      </head>
       <body className="min-h-full bg-gray-950 text-gray-100 antialiased">
         <AuthProvider>
           <ToastProvider>
