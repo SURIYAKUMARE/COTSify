@@ -7,6 +7,7 @@ import { getSupabaseClient, isSupabaseConfigured } from "@/lib/supabase";
 import {
   Loader2, Eye, EyeOff, ArrowRight, RefreshCw, CheckCircle2,
   Bookmark, TrendingUp, Award, Download, CheckCircle, Mail,
+  Smartphone,
 } from "lucide-react";
 
 const BENEFITS = [
@@ -15,7 +16,6 @@ const BENEFITS = [
   { icon: <Award className="w-5 h-5" />, title: "Earn Badges", desc: "Unlock achievement badges as you build more projects.", color: "text-amber-400", bg: "bg-amber-950/50 border-amber-800/50" },
   { icon: <Download className="w-5 h-5" />, title: "Export BOM", desc: "Download full Bill of Materials as text files for any project.", color: "text-green-400", bg: "bg-green-950/50 border-green-800/50" },
 ];
-
 
 const GoogleIcon = () => (
   <svg className="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24">
@@ -26,6 +26,8 @@ const GoogleIcon = () => (
   </svg>
 );
 
+type AuthMode = "password" | "otp";
+
 export default function SignInPage() {
   const router = useRouter();
   const { signInGuest, signInWithGoogle, user, loading: authLoading } = useAuth();
@@ -35,6 +37,7 @@ export default function SignInPage() {
   }, [user, authLoading, router]);
 
   const supabaseReady = isSupabaseConfigured();
+  const [authMode, setAuthMode] = useState<AuthMode>("password");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
@@ -45,11 +48,22 @@ export default function SignInPage() {
   const [resent, setResent] = useState(false);
   const [countdown, setCountdown] = useState(0);
 
+  // OTP states
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpCode, setOtpCode] = useState("");
+  const [otpCountdown, setOtpCountdown] = useState(0);
+
   useEffect(() => {
     if (countdown <= 0) return;
     const t = setTimeout(() => setCountdown(c => c - 1), 1000);
     return () => clearTimeout(t);
   }, [countdown]);
+
+  useEffect(() => {
+    if (otpCountdown <= 0) return;
+    const t = setTimeout(() => setOtpCountdown(c => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [otpCountdown]);
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,6 +77,46 @@ export default function SignInPage() {
       setSubmitting(false);
     } else if (result.error) {
       setError(result.error);
+      setSubmitting(false);
+    } else {
+      router.replace("/dashboard");
+    }
+  };
+
+  const handleSendOTP = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) { setError("Enter your email first"); return; }
+    setError("");
+    setSubmitting(true);
+    const sb = getSupabaseClient();
+    if (!sb) { setError("Supabase not configured"); setSubmitting(false); return; }
+    const { error: otpError } = await sb.auth.signInWithOtp({
+      email,
+      options: { shouldCreateUser: true },
+    });
+    if (otpError) {
+      setError(otpError.message);
+    } else {
+      setOtpSent(true);
+      setOtpCountdown(60);
+    }
+    setSubmitting(false);
+  };
+
+  const handleVerifyOTP = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!otpCode || otpCode.length < 6) { setError("Enter the 6-digit code"); return; }
+    setError("");
+    setSubmitting(true);
+    const sb = getSupabaseClient();
+    if (!sb) { setError("Supabase not configured"); setSubmitting(false); return; }
+    const { error: verifyError } = await sb.auth.verifyOtp({
+      email,
+      token: otpCode,
+      type: "email",
+    });
+    if (verifyError) {
+      setError(verifyError.message);
       setSubmitting(false);
     } else {
       router.replace("/dashboard");
@@ -120,9 +174,25 @@ export default function SignInPage() {
                 {!supabaseReady && <span className="text-xs text-gray-400 ml-1">(needs Supabase)</span>}
               </button>
 
+              {/* Auth mode toggle */}
+              <div className="flex bg-gray-800/60 border border-gray-700 rounded-xl p-1 gap-1">
+                <button
+                  onClick={() => { setAuthMode("password"); setError(""); setOtpSent(false); }}
+                  className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-colors ${authMode === "password" ? "bg-cyan-950 text-cyan-400 border border-cyan-800" : "text-gray-500 hover:text-gray-300"}`}
+                >
+                  <Mail className="w-3.5 h-3.5" /> Password
+                </button>
+                <button
+                  onClick={() => { setAuthMode("otp"); setError(""); setOtpSent(false); }}
+                  className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-colors ${authMode === "otp" ? "bg-cyan-950 text-cyan-400 border border-cyan-800" : "text-gray-500 hover:text-gray-300"}`}
+                >
+                  <Smartphone className="w-3.5 h-3.5" /> OTP / Magic Link
+                </button>
+              </div>
+
               <div className="flex items-center gap-3">
                 <div className="flex-1 h-px bg-gray-800" />
-                <span className="text-gray-600 text-xs">or sign in with email</span>
+                <span className="text-gray-600 text-xs">{authMode === "otp" ? "sign in with one-time code" : "or sign in with email"}</span>
                 <div className="flex-1 h-px bg-gray-800" />
               </div>
 
@@ -134,7 +204,7 @@ export default function SignInPage() {
                 </div>
               )}
 
-              {/* Email not confirmed — show resend option */}
+              {/* Email not confirmed */}
               {needsConfirmation && (
                 <div className="bg-amber-950/40 border border-amber-800/50 rounded-xl p-4 flex flex-col gap-3">
                   <div className="flex items-start gap-2">
@@ -142,8 +212,7 @@ export default function SignInPage() {
                     <div>
                       <p className="text-amber-300 text-sm font-medium">Email not confirmed</p>
                       <p className="text-amber-400/70 text-xs mt-0.5">
-                        Check your inbox at <strong>{email}</strong> and click the confirmation link.
-                        Also check your spam folder.
+                        Check your inbox at <strong>{email}</strong> and click the confirmation link. Also check your spam folder.
                       </p>
                     </div>
                   </div>
@@ -165,55 +234,129 @@ export default function SignInPage() {
                 </div>
               )}
 
-              {/* Email / Password form */}
-              <form onSubmit={handleEmailSubmit} className="flex flex-col gap-4">
-                <div>
-                  <label className="block text-sm text-gray-400 mb-1.5">Email</label>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={e => setEmail(e.target.value)}
-                    required
-                    autoComplete="email"
-                    className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:outline-none focus:border-cyan-600 transition-colors"
-                    placeholder="you@example.com"
-                  />
-                </div>
-                <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <label className="block text-sm text-gray-400">Password</label>
-                    <Link href="/auth/forgot-password" className="text-xs text-cyan-500 hover:text-cyan-400">
-                      Forgot password?
-                    </Link>
-                  </div>
-                  <div className="relative">
+              {/* ── OTP Mode ─────────────────────────────────────────────── */}
+              {authMode === "otp" && (
+                <>
+                  {!otpSent ? (
+                    <form onSubmit={handleSendOTP} className="flex flex-col gap-4">
+                      <div>
+                        <label className="block text-sm text-gray-400 mb-1.5">Email</label>
+                        <input
+                          type="email"
+                          value={email}
+                          onChange={e => setEmail(e.target.value)}
+                          required
+                          autoComplete="email"
+                          className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:outline-none focus:border-cyan-600 transition-colors"
+                          placeholder="you@example.com"
+                        />
+                      </div>
+                      <button
+                        type="submit"
+                        disabled={submitting}
+                        className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 disabled:opacity-50 text-white font-semibold py-2.5 rounded-xl transition-all flex items-center justify-center gap-2"
+                      >
+                        {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
+                        Send OTP Code
+                      </button>
+                    </form>
+                  ) : (
+                    <div className="flex flex-col gap-4">
+                      <div className="bg-green-950/40 border border-green-800/50 rounded-xl p-4 flex items-start gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-green-300 text-sm font-medium">OTP sent!</p>
+                          <p className="text-green-400/70 text-xs mt-0.5">Check your inbox at <strong>{email}</strong> for a 6-digit code.</p>
+                        </div>
+                      </div>
+                      <form onSubmit={handleVerifyOTP} className="flex flex-col gap-4">
+                        <div>
+                          <label className="block text-sm text-gray-400 mb-1.5">Enter 6-digit OTP</label>
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            maxLength={6}
+                            value={otpCode}
+                            onChange={e => setOtpCode(e.target.value.replace(/\D/g, ""))}
+                            required
+                            className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white text-center text-2xl font-bold tracking-[0.5em] placeholder-gray-700 focus:outline-none focus:border-cyan-600 transition-colors"
+                            placeholder="••••••"
+                          />
+                        </div>
+                        <button
+                          type="submit"
+                          disabled={submitting || otpCode.length < 6}
+                          className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 disabled:opacity-50 text-white font-semibold py-2.5 rounded-xl transition-all flex items-center justify-center gap-2"
+                        >
+                          {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4" />}
+                          Verify & Sign In
+                        </button>
+                      </form>
+                      <button
+                        onClick={() => { setOtpSent(false); setOtpCode(""); setOtpCountdown(0); }}
+                        className="text-xs text-gray-500 hover:text-gray-300 text-center transition-colors"
+                      >
+                        ← Use a different email
+                      </button>
+                      {otpCountdown > 0 && (
+                        <p className="text-xs text-gray-600 text-center">Resend available in {otpCountdown}s</p>
+                      )}
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* ── Password Mode ─────────────────────────────────────────── */}
+              {authMode === "password" && (
+                <form onSubmit={handleEmailSubmit} className="flex flex-col gap-4">
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-1.5">Email</label>
                     <input
-                      type={showPw ? "text" : "password"}
-                      value={password}
-                      onChange={e => setPassword(e.target.value)}
+                      type="email"
+                      value={email}
+                      onChange={e => setEmail(e.target.value)}
                       required
-                      autoComplete="current-password"
-                      className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:outline-none focus:border-cyan-600 transition-colors pr-10"
-                      placeholder="••••••••"
+                      autoComplete="email"
+                      className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:outline-none focus:border-cyan-600 transition-colors"
+                      placeholder="you@example.com"
                     />
-                    <button
-                      type="button"
-                      onClick={() => setShowPw(!showPw)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300"
-                    >
-                      {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
                   </div>
-                </div>
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 disabled:opacity-50 text-white font-semibold py-2.5 rounded-xl transition-all flex items-center justify-center gap-2"
-                >
-                  {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4" />}
-                  Sign in
-                </button>
-              </form>
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="block text-sm text-gray-400">Password</label>
+                      <Link href="/auth/forgot-password" className="text-xs text-cyan-500 hover:text-cyan-400">
+                        Forgot password?
+                      </Link>
+                    </div>
+                    <div className="relative">
+                      <input
+                        type={showPw ? "text" : "password"}
+                        value={password}
+                        onChange={e => setPassword(e.target.value)}
+                        required
+                        autoComplete="current-password"
+                        className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:outline-none focus:border-cyan-600 transition-colors pr-10"
+                        placeholder="••••••••"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPw(!showPw)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300"
+                      >
+                        {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 disabled:opacity-50 text-white font-semibold py-2.5 rounded-xl transition-all flex items-center justify-center gap-2"
+                  >
+                    {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4" />}
+                    Sign in
+                  </button>
+                </form>
+              )}
 
               <p className="text-center text-gray-500 text-sm">
                 No account?{" "}
@@ -224,7 +367,7 @@ export default function SignInPage() {
             </div>
           </div>
 
-          {/* ── Right: Benefits + Testimonial ──────────────────────────────── */}
+          {/* ── Right: Benefits ────────────────────────────────────────────── */}
           <div className="hidden lg:flex flex-col gap-6">
             <div className="bg-gray-900/60 border border-gray-800 rounded-2xl p-6 backdrop-blur-sm">
               <h3 className="text-white font-bold text-lg mb-2 flex items-center gap-2">
@@ -244,8 +387,6 @@ export default function SignInPage() {
                 ))}
               </div>
             </div>
-
-
           </div>
 
         </div>
@@ -253,3 +394,4 @@ export default function SignInPage() {
     </div>
   );
 }
+
