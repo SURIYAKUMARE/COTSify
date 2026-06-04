@@ -12,6 +12,7 @@ import {
 const LEARN_KEY = "cotsify_learn_progress";
 const NOTES_KEY = "cotsify_study_notes";
 const TIMER_KEY = "cotsify_study_time";
+const QUIZ_KEY = "cotsify_quiz_scores";
 
 interface Course {
   id: string; title: string; provider: string; category: string;
@@ -145,8 +146,200 @@ function getTotalStudyTime(): number {
 function addStudyTime(secs: number) {
   localStorage.setItem(TIMER_KEY, String(getTotalStudyTime() + secs));
 }
+function getQuizScores(): { date: string; score: number; total: number; topic: string }[] {
+  if (typeof window === "undefined") return [];
+  try { return JSON.parse(localStorage.getItem(QUIZ_KEY) || "[]"); } catch { return []; }
+}
+function saveQuizScore(score: number, total: number, topic: string) {
+  const scores = getQuizScores();
+  scores.unshift({ date: new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short" }), score, total, topic });
+  localStorage.setItem(QUIZ_KEY, JSON.stringify(scores.slice(0, 20)));
+}
 
-// ── Flashcard component ───────────────────────────────────────────────────────
+// ── Quiz data ──────────────────────────────────────────────────────────────────
+const QUIZ_QUESTIONS = [
+  { q: "What does LED stand for?", options: ["Light Emitting Diode", "Low Energy Device", "Linear Electrical Detector", "Luminous Emission Device"], answer: 0, topic: "Electronics" },
+  { q: "Which pin on Arduino Uno is the built-in LED?", options: ["Pin 0", "Pin 5", "Pin 13", "Pin A0"], answer: 2, topic: "Arduino" },
+  { q: "What protocol does DHT11 use to communicate?", options: ["I2C", "SPI", "Single-wire digital", "UART"], answer: 2, topic: "Sensors" },
+  { q: "What does MQTT stand for?", options: ["Message Queue Telemetry Transport", "Modular Query Transfer Technology", "Multi-Queue Transport Terminal", "Messaging Queue Telemetry Tool"], answer: 0, topic: "IoT" },
+  { q: "ESP32 has how many cores?", options: ["1", "2", "4", "8"], answer: 1, topic: "Hardware" },
+  { q: "What is the maximum voltage for Arduino Uno GPIO pins?", options: ["3.3V", "5V", "12V", "9V"], answer: 1, topic: "Arduino" },
+  { q: "Which component stores electrical charge?", options: ["Resistor", "Inductor", "Capacitor", "Diode"], answer: 2, topic: "Electronics" },
+  { q: "What does GPIO stand for?", options: ["General Purpose Input/Output", "Global Pin Interface Output", "Ground Point Input Override", "General Protocol I/O"], answer: 0, topic: "Hardware" },
+  { q: "L298N is used to control:", options: ["Temperature sensors", "DC and stepper motors", "LCD displays", "WiFi modules"], answer: 1, topic: "Robotics" },
+  { q: "Which language is used to program Arduino?", options: ["Python", "Java", "C/C++", "Rust"], answer: 2, topic: "Arduino" },
+  { q: "What does PWM stand for?", options: ["Pulse Width Modulation", "Power Wave Mode", "Periodic Waveform Method", "Phase Width Monitor"], answer: 0, topic: "Electronics" },
+  { q: "Raspberry Pi runs which OS?", options: ["Windows IoT", "FreeRTOS", "Linux-based OS", "macOS embedded"], answer: 2, topic: "Hardware" },
+  { q: "HC-SR04 is used for:", options: ["Temperature measurement", "Distance measurement", "Color detection", "Gas detection"], answer: 1, topic: "Sensors" },
+  { q: "I2C uses how many wires?", options: ["1", "2", "3", "4"], answer: 1, topic: "Communication" },
+  { q: "SPI uses how many wires?", options: ["2", "3", "4", "6"], answer: 2, topic: "Communication" },
+];
+
+// ── Quiz component ─────────────────────────────────────────────────────────────
+function QuizPanel() {
+  const [topic, setTopic] = useState("All");
+  const [questions, setQuestions] = useState<typeof QUIZ_QUESTIONS>([]);
+  const [current, setCurrent] = useState(0);
+  const [selected, setSelected] = useState<number | null>(null);
+  const [answered, setAnswered] = useState(false);
+  const [score, setScore] = useState(0);
+  const [finished, setFinished] = useState(false);
+  const [started, setStarted] = useState(false);
+  const [history, setHistory] = useState<{ date: string; score: number; total: number; topic: string }[]>([]);
+
+  useEffect(() => { setHistory(getQuizScores()); }, []);
+
+  const topics = ["All", ...Array.from(new Set(QUIZ_QUESTIONS.map(q => q.topic)))];
+
+  const startQuiz = () => {
+    const filtered = topic === "All" ? QUIZ_QUESTIONS : QUIZ_QUESTIONS.filter(q => q.topic === topic);
+    const shuffled = [...filtered].sort(() => Math.random() - 0.5).slice(0, 10);
+    setQuestions(shuffled);
+    setCurrent(0); setSelected(null); setAnswered(false);
+    setScore(0); setFinished(false); setStarted(true);
+  };
+
+  const handleAnswer = (idx: number) => {
+    if (answered) return;
+    setSelected(idx);
+    setAnswered(true);
+    if (idx === questions[current].answer) setScore(s => s + 1);
+  };
+
+  const handleNext = () => {
+    if (current + 1 >= questions.length) {
+      saveQuizScore(score + (selected === questions[current].answer ? 0 : 0), questions.length, topic);
+      // final score already tracked
+      saveQuizScore(score, questions.length, topic);
+      setHistory(getQuizScores());
+      setFinished(true);
+    } else {
+      setCurrent(c => c + 1);
+      setSelected(null);
+      setAnswered(false);
+    }
+  };
+
+  if (!started) return (
+    <div className="max-w-lg mx-auto">
+      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8 text-center mb-6">
+        <div className="text-5xl mb-4">🧠</div>
+        <h3 className="text-white font-bold text-xl mb-2">Electronics Quiz</h3>
+        <p className="text-gray-400 text-sm mb-6">Test your knowledge with 10 random questions. Choose a topic or go with mixed questions.</p>
+        <div className="flex flex-wrap gap-2 justify-center mb-6">
+          {topics.map(t => (
+            <button key={t} onClick={() => setTopic(t)}
+              className={`text-xs px-3 py-1.5 rounded-full border transition-all ${topic === t ? "bg-purple-500 text-white border-purple-500" : "bg-gray-800 text-gray-400 border-gray-700 hover:border-purple-600"}`}>
+              {t}
+            </button>
+          ))}
+        </div>
+        <button onClick={startQuiz}
+          className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-400 hover:to-pink-500 text-white font-semibold px-8 py-3 rounded-xl transition-all hover:scale-105">
+          Start Quiz → {topic !== "All" ? `(${topic})` : "(Mixed)"}
+        </button>
+      </div>
+      {history.length > 0 && (
+        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
+          <h4 className="text-white font-semibold text-sm mb-3 flex items-center gap-2">📊 Recent Scores</h4>
+          <div className="flex flex-col gap-2">
+            {history.slice(0, 5).map((h, i) => (
+              <div key={i} className="flex items-center justify-between text-xs bg-gray-800/50 rounded-xl px-3 py-2">
+                <span className="text-gray-400">{h.date} · {h.topic}</span>
+                <span className={`font-bold ${(h.score / h.total) >= 0.7 ? "text-green-400" : (h.score / h.total) >= 0.5 ? "text-yellow-400" : "text-red-400"}`}>
+                  {h.score}/{h.total} ({Math.round((h.score / h.total) * 100)}%)
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
+  if (finished) {
+    const pct = Math.round((score / questions.length) * 100);
+    return (
+      <div className="max-w-lg mx-auto text-center">
+        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8">
+          <div className="text-6xl mb-4">{pct >= 80 ? "🏆" : pct >= 60 ? "🎯" : "📚"}</div>
+          <h3 className="text-white font-bold text-2xl mb-2">Quiz Complete!</h3>
+          <p className="text-gray-400 mb-4">You scored</p>
+          <div className={`text-5xl font-bold mb-2 ${pct >= 70 ? "text-green-400" : pct >= 50 ? "text-yellow-400" : "text-red-400"}`}>{score}/{questions.length}</div>
+          <p className="text-gray-500 text-sm mb-6">{pct}% accuracy · Topic: {topic}</p>
+          <div className="h-3 bg-gray-800 rounded-full mb-6 overflow-hidden">
+            <div className={`h-full rounded-full transition-all ${pct >= 70 ? "bg-gradient-to-r from-green-500 to-emerald-500" : pct >= 50 ? "bg-gradient-to-r from-yellow-500 to-amber-500" : "bg-gradient-to-r from-red-500 to-rose-500"}`}
+              style={{ width: `${pct}%` }} />
+          </div>
+          <div className="flex gap-3 justify-center">
+            <button onClick={startQuiz}
+              className="flex items-center gap-2 bg-gradient-to-r from-purple-500 to-pink-600 text-white font-semibold px-6 py-2.5 rounded-xl text-sm transition-all hover:scale-105">
+              <RotateCcw className="w-4 h-4" /> Try Again
+            </button>
+            <button onClick={() => setStarted(false)}
+              className="flex items-center gap-2 bg-gray-800 text-gray-300 border border-gray-700 px-6 py-2.5 rounded-xl text-sm transition-all hover:bg-gray-700">
+              Change Topic
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const q = questions[current];
+  return (
+    <div className="max-w-2xl mx-auto">
+      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-4">
+          <span className="text-xs text-gray-500">Question {current + 1} of {questions.length}</span>
+          <div className="flex items-center gap-3">
+            <span className="text-green-400 text-xs font-semibold">{score} correct</span>
+            <span className="text-xs bg-purple-950 text-purple-400 border border-purple-800 px-2 py-0.5 rounded-full">{q.topic}</span>
+          </div>
+        </div>
+        {/* Progress */}
+        <div className="h-1.5 bg-gray-800 rounded-full mb-5">
+          <div className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all"
+            style={{ width: `${((current) / questions.length) * 100}%` }} />
+        </div>
+        {/* Question */}
+        <p className="text-white font-semibold text-lg mb-5 leading-relaxed">{q.q}</p>
+        {/* Options */}
+        <div className="flex flex-col gap-2 mb-5">
+          {q.options.map((opt, i) => {
+            let style = "bg-gray-800/50 border-gray-700 text-gray-300 hover:border-purple-600";
+            if (answered) {
+              if (i === q.answer) style = "bg-green-950/60 border-green-700 text-green-300";
+              else if (i === selected && i !== q.answer) style = "bg-red-950/60 border-red-700 text-red-300";
+              else style = "bg-gray-800/30 border-gray-800 text-gray-600";
+            } else if (selected === i) style = "bg-purple-950/60 border-purple-600 text-purple-300";
+            return (
+              <button key={i} onClick={() => handleAnswer(i)} disabled={answered}
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl border text-left text-sm transition-all disabled:cursor-default ${style}`}>
+                <span className="w-6 h-6 rounded-full border border-current flex items-center justify-center text-xs font-bold flex-shrink-0">
+                  {answered && i === q.answer ? "✓" : answered && i === selected && i !== q.answer ? "✗" : String.fromCharCode(65 + i)}
+                </span>
+                {opt}
+              </button>
+            );
+          })}
+        </div>
+        {answered && (
+          <div className={`text-sm p-3 rounded-xl mb-4 ${selected === q.answer ? "bg-green-950/40 border border-green-800/50 text-green-300" : "bg-red-950/40 border border-red-800/50 text-red-300"}`}>
+            {selected === q.answer ? "✅ Correct!" : `❌ Incorrect. The answer is: ${q.options[q.answer]}`}
+          </div>
+        )}
+        {answered && (
+          <button onClick={handleNext}
+            className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-400 hover:to-pink-500 text-white font-semibold py-3 rounded-xl text-sm transition-all">
+            {current + 1 >= questions.length ? "See Results 🏆" : "Next Question →"}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
 function FlashcardPanel() {
   const [idx, setIdx] = useState(0);
   const [flipped, setFlipped] = useState(false);
@@ -432,7 +625,7 @@ function LearnContent() {
   const [level, setLevel] = useState("All");
   const [search, setSearch] = useState("");
   const [progress, setProgressState] = useState<Record<string, "started" | "completed">>({});
-  const [activeTab, setActiveTab] = useState<"courses" | "flashcards" | "notes" | "timer" | "roadmap">("courses");
+  const [activeTab, setActiveTab] = useState<"courses" | "flashcards" | "quiz" | "notes" | "timer" | "roadmap">("courses");
 
   useEffect(() => { setProgressState(getProgress()); }, []);
 
@@ -455,6 +648,7 @@ function LearnContent() {
   const STUDY_TABS = [
     { id: "courses", label: "Courses", icon: <BookOpen className="w-4 h-4" /> },
     { id: "flashcards", label: "Flashcards", icon: <Brain className="w-4 h-4" /> },
+    { id: "quiz", label: "Quiz", icon: <Zap className="w-4 h-4" /> },
     { id: "roadmap", label: "Roadmap", icon: <Map className="w-4 h-4" /> },
     { id: "timer", label: "Study Timer", icon: <Timer className="w-4 h-4" /> },
     { id: "notes", label: "My Notes", icon: <StickyNote className="w-4 h-4" /> },
@@ -605,6 +799,9 @@ function LearnContent() {
           </div>
         </div>
       )}
+
+      {/* ── Quiz tab ─────────────────────────────────────────────────── */}
+      {activeTab === "quiz" && <QuizPanel />}
 
       {/* ── Roadmap tab ──────────────────────────────────────────────────── */}
       {activeTab === "roadmap" && (

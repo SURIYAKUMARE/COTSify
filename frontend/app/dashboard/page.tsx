@@ -12,7 +12,7 @@ import {
   ChevronDown, Pencil, Save, BookOpen, Compass, FileText,
   TrendingUp, Target, Lightbulb, Users, ChevronUp,
   Mail, Star, Award, Brain, Database, Globe, BarChart3, MapPin,
-  Code2,
+  Code2, GraduationCap,
 } from "lucide-react";
 import FeatureBanner from "@/components/FeatureBanner";
 import RecentSearches from "@/components/RecentSearches";
@@ -422,7 +422,7 @@ function DashboardContent() {
             { href: "/search", icon: <Search className="w-5 h-5" />, label: "New Search", desc: "Analyze a project", gradient: "from-cyan-500 to-blue-600", bg: "bg-cyan-950/50 border-cyan-800/50 hover:border-cyan-600" },
             { href: "/explore", icon: <Compass className="w-5 h-5" />, label: "Browse Explore", desc: "Discover projects", gradient: "from-blue-500 to-purple-600", bg: "bg-blue-950/50 border-blue-800/50 hover:border-blue-600" },
             { href: "/catalog", icon: <BookOpen className="w-5 h-5" />, label: "View Catalog", desc: "Browse components", gradient: "from-purple-500 to-pink-600", bg: "bg-purple-950/50 border-purple-800/50 hover:border-purple-600" },
-            { href: "#", icon: <FileText className="w-5 h-5" />, label: "Export All", desc: "Download all BOMs", gradient: "from-green-500 to-cyan-600", bg: "bg-green-950/50 border-green-800/50 hover:border-green-600", onClick: true },
+            { href: "/learn", icon: <GraduationCap className="w-5 h-5" />, label: "Learn & Quiz", desc: "Study electronics", gradient: "from-green-500 to-teal-600", bg: "bg-green-950/50 border-green-800/50 hover:border-green-600" },
           ].map((action) => (
             <Link key={action.label} href={action.href}
               className={`group flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all hover:-translate-y-1 hover:shadow-lg text-center ${action.bg}`}>

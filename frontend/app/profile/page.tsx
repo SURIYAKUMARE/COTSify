@@ -658,42 +658,113 @@ function ProfileContent() {
 
       {/* ── LEARNING TAB ─────────────────────────────────────────────── */}
       {activeTab === "learn" && (
-        <div className="bg-gradient-to-br from-violet-950/40 to-cyan-950/40 border border-violet-800/30 rounded-2xl p-6 text-center">
-          <GraduationCap className="w-12 h-12 text-violet-400 mx-auto mb-4" />
-          <h3 className="text-white font-bold text-xl mb-2">Free Learning Paths</h3>
-          <p className="text-gray-400 text-sm mb-6 max-w-md mx-auto">
-            25+ free courses from Coursera, edX, NPTEL, and YouTube. Get certified in Electronics, IoT, Robotics, AI/ML and more.
-          </p>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-            {[["Electronics","⚡"],["IoT","📡"],["Robotics","🤖"],["AI/ML","🧠"]].map(([cat, icon]) => (
-              <Link key={cat} href="/learn"
-                className="bg-gray-900/60 border border-gray-800 hover:border-violet-700 rounded-xl p-3 text-center transition-all hover:-translate-y-0.5">
-                <div className="text-2xl mb-1">{icon}</div>
-                <div className="text-white text-xs font-medium">{cat}</div>
-                <div className="text-gray-500 text-xs">Free courses</div>
-              </Link>
-            ))}
-          </div>
-          <div className="grid sm:grid-cols-3 gap-3 mb-6 text-left">
-            {[
-              { label: "Flashcards", desc: "20 Q&A electronics cards", icon: "🃏", href: "/learn" },
-              { label: "Study Timer", desc: "Pomodoro focus sessions", icon: "⏱️", href: "/learn" },
-              { label: "Roadmaps", desc: "IoT · Robotics · AI/ML paths", icon: "🗺️", href: "/learn" },
-            ].map(f => (
-              <Link key={f.label} href={f.href}
-                className="flex items-center gap-3 bg-gray-900/60 border border-gray-800 hover:border-violet-700 rounded-xl p-3 transition-all">
-                <span className="text-2xl">{f.icon}</span>
-                <div>
-                  <p className="text-white text-sm font-medium">{f.label}</p>
-                  <p className="text-gray-500 text-xs">{f.desc}</p>
+        <div className="flex flex-col gap-5">
+          {/* Study stats row */}
+          {(() => {
+            const studyTime = typeof window !== "undefined" ? Number(localStorage.getItem("cotsify_study_time") || "0") : 0;
+            const learnProgress = typeof window !== "undefined" ? (() => { try { return JSON.parse(localStorage.getItem("cotsify_learn_progress") || "{}"); } catch { return {}; } })() : {};
+            const completedCourses = Object.values(learnProgress).filter(v => v === "completed").length;
+            const startedCourses = Object.values(learnProgress).filter(v => v === "started").length;
+            const quizScores: { score: number; total: number }[] = typeof window !== "undefined" ? (() => { try { return JSON.parse(localStorage.getItem("cotsify_quiz_scores") || "[]"); } catch { return []; } })() : [];
+            const bestQuiz = quizScores.length > 0 ? Math.max(...quizScores.map(q => Math.round((q.score / q.total) * 100))) : 0;
+            const roadmapProgress: Record<string, boolean[]> = typeof window !== "undefined" ? (() => { try { return JSON.parse(localStorage.getItem("cotsify_roadmap_progress") || "{}"); } catch { return {}; } })() : {};
+            const roadmapSteps = Object.values(roadmapProgress).flat().filter(Boolean).length;
+            const fmtTime = (s: number) => { const h = Math.floor(s / 3600); const m = Math.floor((s % 3600) / 60); return h > 0 ? `${h}h ${m}m` : `${m}m`; };
+            return (
+              <>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {[
+                    { label: "Study Time", value: fmtTime(studyTime), icon: "⏱️", color: "text-cyan-400", bg: "bg-cyan-950/40 border-cyan-800/50" },
+                    { label: "Courses Done", value: `${completedCourses}`, icon: "📚", color: "text-green-400", bg: "bg-green-950/40 border-green-800/50" },
+                    { label: "Best Quiz", value: bestQuiz > 0 ? `${bestQuiz}%` : "—", icon: "🧠", color: "text-purple-400", bg: "bg-purple-950/40 border-purple-800/50" },
+                    { label: "Roadmap Steps", value: `${roadmapSteps}`, icon: "🗺️", color: "text-amber-400", bg: "bg-amber-950/40 border-amber-800/50" },
+                  ].map(s => (
+                    <div key={s.label} className={`${s.bg} border rounded-2xl p-4 text-center`}>
+                      <div className="text-2xl mb-1">{s.icon}</div>
+                      <div className={`text-xl font-bold ${s.color}`}>{s.value}</div>
+                      <div className="text-gray-500 text-xs mt-0.5">{s.label}</div>
+                    </div>
+                  ))}
                 </div>
-              </Link>
-            ))}
-          </div>
-          <Link href="/learn"
-            className="inline-flex items-center gap-2 bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-400 hover:to-purple-500 text-white font-semibold px-8 py-3 rounded-full transition-all shadow-lg shadow-violet-500/25 hover:scale-105">
-            <GraduationCap className="w-4 h-4" /> Browse All Courses & Tools
-          </Link>
+
+                {/* Roadmap progress */}
+                <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
+                  <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
+                    <Map className="w-4 h-4 text-cyan-400" /> Roadmap Progress
+                  </h3>
+                  {[
+                    { title: "IoT Developer", icon: "📡", color: "from-cyan-500 to-blue-600", steps: 6 },
+                    { title: "Robotics Engineer", icon: "🤖", color: "from-purple-500 to-pink-600", steps: 6 },
+                    { title: "AI/ML Engineer", icon: "🧠", color: "from-orange-500 to-red-600", steps: 6 },
+                  ].map(r => {
+                    const prog = roadmapProgress[r.title] || [];
+                    const done = prog.filter(Boolean).length;
+                    const pct = Math.round((done / r.steps) * 100);
+                    return (
+                      <div key={r.title} className="mb-3">
+                        <div className="flex items-center justify-between mb-1.5">
+                          <span className="text-gray-300 text-sm flex items-center gap-2">{r.icon} {r.title}</span>
+                          <span className="text-gray-500 text-xs">{done}/{r.steps} steps</span>
+                        </div>
+                        <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
+                          <div className={`h-full bg-gradient-to-r ${r.color} rounded-full transition-all`} style={{ width: `${pct}%` }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                  <Link href="/learn?tab=roadmap" className="mt-3 text-xs text-cyan-400 hover:text-cyan-300 flex items-center gap-1 transition-colors">
+                    Continue learning <ChevronRight className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
+
+                {/* Quiz scores */}
+                {quizScores.length > 0 && (
+                  <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
+                    <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
+                      <Zap className="w-4 h-4 text-purple-400" /> Recent Quiz Scores
+                    </h3>
+                    <div className="flex flex-col gap-2">
+                      {quizScores.slice(0, 5).map((q, i) => {
+                        const pct = Math.round((q.score / q.total) * 100);
+                        return (
+                          <div key={i} className="flex items-center justify-between bg-gray-800/40 rounded-xl px-4 py-2.5">
+                            <span className="text-gray-400 text-sm">{(q as any).topic || "Mixed"} · {(q as any).date || ""}</span>
+                            <div className="flex items-center gap-2">
+                              <div className="w-16 h-1.5 bg-gray-700 rounded-full overflow-hidden">
+                                <div className={`h-full rounded-full ${pct >= 70 ? "bg-green-500" : pct >= 50 ? "bg-yellow-500" : "bg-red-500"}`} style={{ width: `${pct}%` }} />
+                              </div>
+                              <span className={`text-xs font-bold ${pct >= 70 ? "text-green-400" : pct >= 50 ? "text-yellow-400" : "text-red-400"}`}>{q.score}/{q.total}</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Quick links */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {[
+                    { label: "Take a Quiz", desc: "Test your knowledge", icon: "🧠", href: "/learn", color: "border-purple-800/50 hover:border-purple-600" },
+                    { label: "Flashcards", desc: "20 electronics cards", icon: "🃏", href: "/learn", color: "border-cyan-800/50 hover:border-cyan-600" },
+                    { label: "Study Timer", desc: "Pomodoro sessions", icon: "⏱️", href: "/learn", color: "border-amber-800/50 hover:border-amber-600" },
+                    { label: "Roadmaps", desc: "IoT · Robotics · AI", icon: "🗺️", href: "/learn", color: "border-green-800/50 hover:border-green-600" },
+                    { label: "Free Courses", desc: "23 curated courses", icon: "📚", href: "/learn", color: "border-blue-800/50 hover:border-blue-600" },
+                    { label: "Study Notes", desc: "Save your notes", icon: "📝", href: "/learn", color: "border-pink-800/50 hover:border-pink-600" },
+                  ].map(f => (
+                    <Link key={f.label} href={f.href}
+                      className={`flex items-center gap-3 bg-gray-900/60 border ${f.color} rounded-xl p-3 transition-all hover:-translate-y-0.5`}>
+                      <span className="text-2xl">{f.icon}</span>
+                      <div>
+                        <p className="text-white text-sm font-medium">{f.label}</p>
+                        <p className="text-gray-500 text-xs">{f.desc}</p>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </>
+            );
+          })()}
         </div>
       )}
 
