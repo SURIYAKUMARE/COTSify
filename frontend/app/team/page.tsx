@@ -1,323 +1,332 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
-  Linkedin, Mail, ExternalLink, Code2, Cpu, Brain,
-  Database, Globe, Zap, Star, Award, BookOpen, ArrowLeft,
-  ChevronDown, ChevronUp, Layers, Bot, BarChart3, MapPin,
+  Mail, ArrowLeft, Plus, Trash2, Edit3, Check, X,
+  Github, Linkedin, Save, UserPlus, Users,
 } from "lucide-react";
 
-const GithubIcon = ({ className }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
-  </svg>
-);
+const TEAM_KEY = "cotsify_team_members";
 
-// ── Team Data ─────────────────────────────────────────────────────────────────
-const TEAM = [
-  {
-    id: 1,
-    name: "SURIYAKUMAR E",
-    role: "Full Stack Developer & Team Lead",
-    dept: "AIML",
-    num: "01",
-    avatar: "S",
-    color: "from-cyan-500 to-blue-600",
-    glow: "shadow-cyan-500/30",
-    border: "border-cyan-800/50",
-    bg: "bg-cyan-950/30",
-    tagColor: "text-cyan-400 bg-cyan-950/60 border-cyan-800/50",
-    bio: "Led the full-stack development of COTsify. Designed the system architecture, built the FastAPI backend, and implemented the AI-powered component extraction pipeline using Gemini and OpenAI APIs.",
-    contributions: [
-      { icon: <Bot className="w-4 h-4" />, title: "AI Integration", desc: "Integrated Gemini 2.0 Flash and GPT-4o-mini for intelligent component extraction" },
-      { icon: <Code2 className="w-4 h-4" />, title: "Backend API", desc: "Built FastAPI backend with 8 route modules, Supabase auth, and CORS configuration" },
-      { icon: <Globe className="w-4 h-4" />, title: "Frontend Architecture", desc: "Designed Next.js 16 app structure with auth context, route guards, and state management" },
-      { icon: <Zap className="w-4 h-4" />, title: "Deployment", desc: "Deployed frontend on Vercel and backend on Render with CI/CD via GitHub" },
-    ],
-    skills: ["Next.js", "FastAPI", "Python", "TypeScript", "Supabase", "Vercel", "OpenAI API", "Gemini API"],
-    github: "https://github.com/SURIYAKUMARE",
-    linkedin: "#",
-    email: "suryaaswin000@gmail.com",
-  },
-  {
-    id: 2,
-    name: "JEFFREYNICKALAS M",
-    role: "AI/ML Engineer",
-    dept: "AIML",
-    num: "02",
-    avatar: "J",
-    color: "from-blue-500 to-purple-600",
-    glow: "shadow-blue-500/30",
-    border: "border-blue-800/50",
-    bg: "bg-blue-950/30",
-    tagColor: "text-blue-400 bg-blue-950/60 border-blue-800/50",
-    bio: "Focused on the machine learning pipeline and AI model integration. Designed the prompt engineering strategy for component extraction and built the intelligent chat assistant with context-aware responses.",
-    contributions: [
-      { icon: <Brain className="w-4 h-4" />, title: "Prompt Engineering", desc: "Designed system prompts for accurate BOM extraction across 500+ component types" },
-      { icon: <Bot className="w-4 h-4" />, title: "Chat Assistant", desc: "Built the COTsify AI chat with local knowledge base and multi-model fallback" },
-      { icon: <Layers className="w-4 h-4" />, title: "Model Pipeline", desc: "Implemented Gemini → OpenAI → local fallback chain for 100% uptime" },
-      { icon: <Database className="w-4 h-4" />, title: "Data Processing", desc: "Built component catalog with 500+ entries and technical specifications" },
-    ],
-    skills: ["Python", "LangChain", "Gemini API", "OpenAI API", "Prompt Engineering", "NLP", "FastAPI", "JSON"],
-    github: "#",
-    linkedin: "#",
-    email: "jeffrey@example.com",
-  },
-  {
-    id: 3,
-    name: "JOVITA D",
-    role: "UI/UX Designer & Frontend Developer",
-    dept: "AIML",
-    num: "03",
-    avatar: "J",
-    color: "from-purple-500 to-pink-600",
-    glow: "shadow-purple-500/30",
-    border: "border-purple-800/50",
-    bg: "bg-purple-950/30",
-    tagColor: "text-purple-400 bg-purple-950/60 border-purple-800/50",
-    bio: "Designed the complete UI/UX of COTsify with a focus on dark-mode aesthetics and intuitive user flows. Built the component catalog, explore page, and learning modules with responsive design.",
-    contributions: [
-      { icon: <Star className="w-4 h-4" />, title: "UI/UX Design", desc: "Designed the dark-mode interface with glassmorphism effects and gradient accents" },
-      { icon: <BookOpen className="w-4 h-4" />, title: "Catalog & Learn", desc: "Built the component catalog browser and interactive learning modules" },
-      { icon: <Layers className="w-4 h-4" />, title: "Component Cards", desc: "Designed reusable component cards with bookmark, compare, and cart features" },
-      { icon: <Globe className="w-4 h-4" />, title: "Responsive Design", desc: "Ensured full mobile responsiveness across all 12 pages" },
-    ],
-    skills: ["Tailwind CSS", "React", "Figma", "TypeScript", "Next.js", "Framer Motion", "Accessibility", "SVG"],
-    github: "#",
-    linkedin: "#",
-    email: "jovita@example.com",
-  },
-  {
-    id: 4,
-    name: "PREDEEP KV",
-    role: "Data Engineer & Research Lead",
-    dept: "AIML",
-    num: "04",
-    avatar: "P",
-    color: "from-pink-500 to-rose-600",
-    glow: "shadow-pink-500/30",
-    border: "border-pink-800/50",
-    bg: "bg-pink-950/30",
-    tagColor: "text-pink-400 bg-pink-950/60 border-pink-800/50",
-    bio: "Led the research and data engineering aspects of COTsify. Built the price comparison engine, Google Maps integration for nearby stores, and the project timeline estimation system.",
-    contributions: [
-      { icon: <BarChart3 className="w-4 h-4" />, title: "Price Comparison", desc: "Built multi-platform price scraping and comparison engine for Amazon, Flipkart, Robu.in" },
-      { icon: <MapPin className="w-4 h-4" />, title: "Maps Integration", desc: "Integrated Google Maps Places API for real-time nearby electronics store discovery" },
-      { icon: <Database className="w-4 h-4" />, title: "Database Design", desc: "Designed Supabase schema for projects, components, and user profiles" },
-      { icon: <Cpu className="w-4 h-4" />, title: "Research", desc: "Researched 500+ electronic components and curated pricing data for Indian market" },
-    ],
-    skills: ["PostgreSQL", "Supabase", "Google Maps API", "Python", "Data Analysis", "REST APIs", "SQL", "Research"],
-    github: "#",
-    linkedin: "#",
-    email: "predeep@example.com",
-  },
+interface TeamMember {
+  id: string;
+  name: string;
+  role: string;
+  dept: string;
+  skills: string;
+  bio: string;
+  email: string;
+  github: string;
+  linkedin: string;
+  color: string;
+}
+
+const COLORS = [
+  "from-cyan-500 to-blue-600",
+  "from-blue-500 to-purple-600",
+  "from-purple-500 to-pink-600",
+  "from-pink-500 to-rose-600",
+  "from-green-500 to-teal-600",
+  "from-amber-500 to-orange-600",
 ];
 
-const PROJECT_STATS = [
-  { value: "12", label: "Pages Built", color: "text-cyan-400" },
-  { value: "500+", label: "Components", color: "text-blue-400" },
-  { value: "8", label: "API Routes", color: "text-purple-400" },
-  { value: "4", label: "AI Models", color: "text-pink-400" },
-];
+const EMPTY_MEMBER: Omit<TeamMember, "id"> = {
+  name: "",
+  role: "",
+  dept: "AIML",
+  skills: "",
+  bio: "",
+  email: "",
+  github: "",
+  linkedin: "",
+  color: COLORS[0],
+};
 
-// ── Member Card ───────────────────────────────────────────────────────────────
-function MemberCard({ member }: { member: typeof TEAM[0] }) {
-  const [expanded, setExpanded] = useState(false);
+function getTeam(): TeamMember[] {
+  if (typeof window === "undefined") return [];
+  try { return JSON.parse(localStorage.getItem(TEAM_KEY) || "[]"); } catch { return []; }
+}
 
-  return (
-    <div className={`group relative bg-gray-900/60 border ${member.border} rounded-3xl overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-1`}>
-      {/* Gradient top bar */}
-      <div className={`h-1.5 w-full bg-gradient-to-r ${member.color}`} />
+function saveTeam(team: TeamMember[]) {
+  localStorage.setItem(TEAM_KEY, JSON.stringify(team));
+}
 
-      {/* Glow background */}
-      <div className={`absolute inset-0 bg-gradient-to-br ${member.color} opacity-0 group-hover:opacity-5 transition-opacity duration-300 pointer-events-none`} />
+export default function TeamPage() {
+  const [team, setTeam] = useState<TeamMember[]>([]);
+  const [adding, setAdding] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [form, setForm] = useState<Omit<TeamMember, "id">>(EMPTY_MEMBER);
 
-      <div className="p-6 relative">
-        {/* Header */}
-        <div className="flex items-start gap-4 mb-5">
-          <div className="relative flex-shrink-0">
-            <div className={`w-16 h-16 bg-gradient-to-br ${member.color} rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300`}>
-              <span className="text-white font-bold text-2xl">{member.avatar}</span>
-            </div>
-            <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-gray-900 border border-gray-700 rounded-full flex items-center justify-center">
-              <span className="text-gray-500 text-xs font-mono">{member.num}</span>
-            </div>
-          </div>
-          <div className="flex-1 min-w-0">
-            <h3 className="text-white font-bold text-lg leading-tight group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:bg-clip-text group-hover:from-white group-hover:to-gray-300 transition-all">
-              {member.name}
-            </h3>
-            <p className="text-gray-400 text-sm mt-0.5">{member.role}</p>
-            <span className={`inline-flex items-center text-xs px-2.5 py-0.5 rounded-full border font-medium mt-2 ${member.tagColor}`}>
-              {member.dept}
-            </span>
-          </div>
+  useEffect(() => {
+    setTeam(getTeam());
+  }, []);
+
+  const handleAdd = () => {
+    if (!form.name.trim()) return;
+    const newMember: TeamMember = {
+      ...form,
+      id: crypto.randomUUID(),
+      color: COLORS[team.length % COLORS.length],
+    };
+    const updated = [...team, newMember];
+    saveTeam(updated);
+    setTeam(updated);
+    setForm(EMPTY_MEMBER);
+    setAdding(false);
+  };
+
+  const handleEdit = (member: TeamMember) => {
+    setEditingId(member.id);
+    setForm({ ...member });
+  };
+
+  const handleUpdate = () => {
+    const updated = team.map(m => m.id === editingId ? { ...form, id: editingId } : m);
+    saveTeam(updated);
+    setTeam(updated);
+    setEditingId(null);
+    setForm(EMPTY_MEMBER);
+  };
+
+  const handleDelete = (id: string) => {
+    const updated = team.filter(m => m.id !== id);
+    saveTeam(updated);
+    setTeam(updated);
+  };
+
+  const FormFields = () => (
+    <div className="grid sm:grid-cols-2 gap-3">
+      {[
+        { key: "name", label: "Full Name *", placeholder: "e.g. SURIYAKUMAR E" },
+        { key: "role", label: "Role *", placeholder: "e.g. Full Stack Developer" },
+        { key: "dept", label: "Department", placeholder: "e.g. AIML" },
+        { key: "skills", label: "Skills (comma separated)", placeholder: "Next.js, Python, AI" },
+        { key: "email", label: "Email", placeholder: "name@gmail.com" },
+        { key: "github", label: "GitHub URL", placeholder: "https://github.com/username" },
+        { key: "linkedin", label: "LinkedIn URL", placeholder: "https://linkedin.com/in/username" },
+      ].map(f => (
+        <div key={f.key}>
+          <label className="block text-xs text-gray-400 mb-1">{f.label}</label>
+          <input
+            value={(form as any)[f.key]}
+            onChange={e => setForm(d => ({ ...d, [f.key]: e.target.value }))}
+            placeholder={f.placeholder}
+            className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-cyan-600 transition-colors"
+          />
         </div>
-
-        {/* Bio */}
-        <p className="text-gray-400 text-sm leading-relaxed mb-5">{member.bio}</p>
-
-        {/* Skills */}
-        <div className="flex flex-wrap gap-1.5 mb-5">
-          {member.skills.map(skill => (
-            <span key={skill} className="text-xs bg-gray-800 border border-gray-700 text-gray-300 px-2.5 py-1 rounded-full">
-              {skill}
-            </span>
+      ))}
+      <div className="sm:col-span-2">
+        <label className="block text-xs text-gray-400 mb-1">Bio</label>
+        <textarea
+          value={form.bio}
+          onChange={e => setForm(d => ({ ...d, bio: e.target.value }))}
+          rows={3}
+          placeholder="Brief description of contributions..."
+          className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-cyan-600 transition-colors resize-none"
+        />
+      </div>
+      <div className="sm:col-span-2">
+        <label className="block text-xs text-gray-400 mb-2">Card Color</label>
+        <div className="flex gap-2 flex-wrap">
+          {COLORS.map(c => (
+            <button
+              key={c}
+              onClick={() => setForm(d => ({ ...d, color: c }))}
+              className={`w-8 h-8 rounded-lg bg-gradient-to-br ${c} ${form.color === c ? "ring-2 ring-white ring-offset-2 ring-offset-gray-900" : ""}`}
+            />
           ))}
-        </div>
-
-        {/* Contributions toggle */}
-        <button
-          onClick={() => setExpanded(!expanded)}
-          className={`w-full flex items-center justify-between text-sm font-medium px-4 py-2.5 rounded-xl border transition-all ${member.bg} ${member.border}`}
-        >
-          <span className={member.tagColor.split(" ")[0]}>View Contributions ({member.contributions.length})</span>
-          {expanded ? <ChevronUp className="w-4 h-4 text-gray-500" /> : <ChevronDown className="w-4 h-4 text-gray-500" />}
-        </button>
-
-        {/* Contributions expanded */}
-        {expanded && (
-          <div className="mt-3 flex flex-col gap-2">
-            {member.contributions.map((c) => (
-              <div key={c.title} className={`flex items-start gap-3 p-3 rounded-xl border ${member.bg} ${member.border}`}>
-                <div className={`mt-0.5 flex-shrink-0 ${member.tagColor.split(" ")[0]}`}>{c.icon}</div>
-                <div>
-                  <p className="text-white text-sm font-medium">{c.title}</p>
-                  <p className="text-gray-500 text-xs mt-0.5">{c.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Social links */}
-        <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-800">
-          {member.github !== "#" && (
-            <a href={member.github} target="_blank" rel="noopener noreferrer"
-              className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-white bg-gray-800 hover:bg-gray-700 border border-gray-700 px-3 py-1.5 rounded-lg transition-all">
-              <GithubIcon className="w-3.5 h-3.5" /> GitHub
-            </a>
-          )}
-          <a href={`mailto:${member.email}`}
-            className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-white bg-gray-800 hover:bg-gray-700 border border-gray-700 px-3 py-1.5 rounded-lg transition-all">
-            <Mail className="w-3.5 h-3.5" /> Email
-          </a>
-          <a href={member.linkedin} target="_blank" rel="noopener noreferrer"
-            className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-blue-400 bg-gray-800 hover:bg-gray-700 border border-gray-700 px-3 py-1.5 rounded-lg transition-all ml-auto">
-            <Linkedin className="w-3.5 h-3.5" /> LinkedIn
-          </a>
         </div>
       </div>
     </div>
   );
-}
 
-// ── Page ──────────────────────────────────────────────────────────────────────
-export default function TeamPage() {
   return (
     <div className="min-h-screen">
       {/* Hero */}
-      <section className="relative px-4 pt-16 pb-20 overflow-hidden">
-        {/* Background effects */}
+      <section className="relative px-4 pt-16 pb-12 overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-10%,rgba(6,182,212,0.15),transparent)]" />
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_40%_30%_at_80%_80%,rgba(139,92,246,0.1),transparent)]" />
-          <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: "linear-gradient(rgba(6,182,212,1) 1px, transparent 1px), linear-gradient(90deg, rgba(6,182,212,1) 1px, transparent 1px)", backgroundSize: "60px 60px" }} />
         </div>
-
         <div className="relative max-w-4xl mx-auto text-center">
           <Link href="/" className="inline-flex items-center gap-2 text-gray-500 hover:text-gray-300 text-sm mb-8 transition-colors">
             <ArrowLeft className="w-4 h-4" /> Back to home
           </Link>
-
           <div className="inline-flex items-center gap-2 bg-cyan-950/60 border border-cyan-800/60 text-cyan-400 text-xs px-4 py-2 rounded-full mb-6">
             <Users className="w-3.5 h-3.5" /> Meet the Team
           </div>
-
           <h1 className="text-5xl sm:text-6xl font-bold mb-4">
             <span className="text-white">Built by </span>
             <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-500 bg-clip-text text-transparent">AIML Students</span>
           </h1>
-          <p className="text-gray-400 text-lg max-w-2xl mx-auto mb-10">
-            COTsify is a final year project by 4 passionate AIML students who wanted to make electronics sourcing smarter for every maker in India.
+          <p className="text-gray-400 text-lg max-w-2xl mx-auto mb-6">
+            COTsify is a final year project by passionate AIML students who wanted to make electronics sourcing smarter for every maker in India.
           </p>
-
-          {/* Project stats */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-2xl mx-auto">
-            {PROJECT_STATS.map(s => (
-              <div key={s.label} className="bg-gray-900/60 border border-gray-800 rounded-2xl p-4 text-center backdrop-blur-sm">
-                <div className={`text-3xl font-bold ${s.color} mb-1`}>{s.value}</div>
-                <div className="text-gray-500 text-xs">{s.label}</div>
-              </div>
-            ))}
-          </div>
         </div>
       </section>
 
-      {/* Team grid */}
+      {/* Team Section */}
       <section className="px-4 pb-20 relative z-10">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid sm:grid-cols-2 xl:grid-cols-2 gap-6">
-            {TEAM.map(member => (
-              <MemberCard key={member.id} member={member} />
-            ))}
-          </div>
-        </div>
-      </section>
+        <div className="max-w-5xl mx-auto">
 
-      {/* Project info */}
-      <section className="px-4 pb-20 relative z-10">
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-gradient-to-br from-gray-900/80 to-gray-900/40 border border-gray-800 rounded-3xl p-8 relative overflow-hidden">
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_60%_at_50%_50%,rgba(6,182,212,0.05),transparent)] pointer-events-none" />
-            <div className="relative">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="p-3 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-2xl">
-                  <Award className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <h2 className="text-white font-bold text-xl">About the Project</h2>
-                  <p className="text-gray-500 text-sm">Final Year Project — 2025</p>
-                </div>
-              </div>
-              <p className="text-gray-400 leading-relaxed mb-6">
-                COTsify (Component Optimization Tool) is an AI-powered platform that helps engineering students and makers identify, source, and compare electronic components for any project. Built with Next.js, FastAPI, Supabase, and multiple AI APIs, it represents a complete full-stack solution developed as a final year project by the AIML department.
-              </p>
-              <div className="grid sm:grid-cols-3 gap-4">
-                {[
-                  { label: "Department", value: "Artificial Intelligence & Machine Learning" },
-                  { label: "Year", value: "Final Year — 2025" },
-                  { label: "Tech Stack", value: "Next.js · FastAPI · Supabase · Gemini AI" },
-                ].map(item => (
-                  <div key={item.label} className="bg-gray-800/50 border border-gray-700 rounded-xl p-4">
-                    <p className="text-gray-500 text-xs mb-1">{item.label}</p>
-                    <p className="text-white text-sm font-medium">{item.value}</p>
-                  </div>
-                ))}
-              </div>
-              <div className="flex flex-wrap gap-3 mt-6">
-                <a href="https://github.com/SURIYAKUMARE/COTSify" target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 border border-gray-700 text-gray-300 hover:text-white px-4 py-2 rounded-xl text-sm transition-all">
-                  <GithubIcon className="w-4 h-4" /> View on GitHub
-                </a>
-                <Link href="/search"
-                  className="flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white px-4 py-2 rounded-xl text-sm transition-all font-medium">
-                  <ExternalLink className="w-4 h-4" /> Try COTsify
-                </Link>
+          {/* Add Member Button */}
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-white font-bold text-xl flex items-center gap-2">
+              <Users className="w-5 h-5 text-cyan-400" />
+              Team Members ({team.length})
+            </h2>
+            <button
+              onClick={() => { setAdding(true); setEditingId(null); setForm(EMPTY_MEMBER); }}
+              className="flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-semibold px-4 py-2 rounded-xl text-sm transition-all"
+            >
+              <UserPlus className="w-4 h-4" /> Add Member
+            </button>
+          </div>
+
+          {/* Add Form */}
+          {adding && (
+            <div className="bg-gray-900/80 border border-cyan-800/50 rounded-2xl p-6 mb-8">
+              <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
+                <Plus className="w-4 h-4 text-cyan-400" /> Add New Team Member
+              </h3>
+              <FormFields />
+              <div className="flex gap-2 mt-4">
+                <button
+                  onClick={handleAdd}
+                  disabled={!form.name.trim()}
+                  className="flex items-center gap-2 bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 text-gray-950 font-semibold px-5 py-2 rounded-xl text-sm transition-all"
+                >
+                  <Save className="w-4 h-4" /> Save Member
+                </button>
+                <button
+                  onClick={() => { setAdding(false); setForm(EMPTY_MEMBER); }}
+                  className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 px-4 py-2 rounded-xl text-sm transition-all"
+                >
+                  <X className="w-4 h-4" /> Cancel
+                </button>
               </div>
             </div>
+          )}
+
+          {/* Empty State */}
+          {team.length === 0 && !adding && (
+            <div className="text-center py-20 bg-gray-900/40 border border-dashed border-gray-700 rounded-3xl">
+              <Users className="w-12 h-12 text-gray-600 mx-auto mb-4" />
+              <p className="text-white font-semibold text-lg mb-2">No team members yet</p>
+              <p className="text-gray-500 text-sm mb-6">Click "Add Member" to add your team</p>
+              <button
+                onClick={() => setAdding(true)}
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold px-6 py-3 rounded-xl text-sm transition-all"
+              >
+                <UserPlus className="w-4 h-4" /> Add First Member
+              </button>
+            </div>
+          )}
+
+          {/* Team Grid */}
+          <div className="grid sm:grid-cols-2 gap-6">
+            {team.map((member, idx) => (
+              <div key={member.id} className="group relative bg-gray-900/60 border border-gray-800 rounded-3xl overflow-hidden transition-all hover:-translate-y-1 hover:shadow-2xl">
+                {/* Top color bar */}
+                <div className={`h-1.5 w-full bg-gradient-to-r ${member.color}`} />
+
+                {/* Edit form inline */}
+                {editingId === member.id ? (
+                  <div className="p-6">
+                    <h3 className="text-white font-semibold mb-4">Editing {member.name}</h3>
+                    <FormFields />
+                    <div className="flex gap-2 mt-4">
+                      <button
+                        onClick={handleUpdate}
+                        className="flex items-center gap-2 bg-cyan-500 hover:bg-cyan-400 text-gray-950 font-semibold px-4 py-2 rounded-xl text-sm"
+                      >
+                        <Check className="w-4 h-4" /> Update
+                      </button>
+                      <button
+                        onClick={() => { setEditingId(null); setForm(EMPTY_MEMBER); }}
+                        className="flex items-center gap-2 bg-gray-800 text-gray-300 border border-gray-700 px-4 py-2 rounded-xl text-sm"
+                      >
+                        <X className="w-4 h-4" /> Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-6">
+                    {/* Header */}
+                    <div className="flex items-start gap-4 mb-4">
+                      <div className={`w-16 h-16 bg-gradient-to-br ${member.color} rounded-2xl flex items-center justify-center text-white font-bold text-2xl shadow-lg flex-shrink-0`}>
+                        {member.name?.[0]?.toUpperCase() || "?"}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-white font-bold text-lg leading-tight">{member.name}</h3>
+                        <p className="text-gray-400 text-sm mt-0.5">{member.role}</p>
+                        {member.dept && (
+                          <span className="inline-flex text-xs px-2.5 py-0.5 rounded-full border text-cyan-400 bg-cyan-950/60 border-cyan-800/50 mt-1.5">
+                            {member.dept}
+                          </span>
+                        )}
+                      </div>
+                      {/* Actions */}
+                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={() => handleEdit(member)}
+                          className="p-1.5 bg-gray-800 text-gray-400 border border-gray-700 rounded-lg hover:border-cyan-700 hover:text-cyan-400 transition-all"
+                        >
+                          <Edit3 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(member.id)}
+                          className="p-1.5 bg-gray-800 text-gray-400 border border-gray-700 rounded-lg hover:border-red-700 hover:text-red-400 transition-all"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Bio */}
+                    {member.bio && (
+                      <p className="text-gray-400 text-sm leading-relaxed mb-4">{member.bio}</p>
+                    )}
+
+                    {/* Skills */}
+                    {member.skills && (
+                      <div className="flex flex-wrap gap-1.5 mb-4">
+                        {member.skills.split(",").map(s => s.trim()).filter(Boolean).map(skill => (
+                          <span key={skill} className="text-xs bg-gray-800 border border-gray-700 text-gray-300 px-2.5 py-1 rounded-full">
+                            {skill}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Social links */}
+                    <div className="flex items-center gap-2 pt-4 border-t border-gray-800">
+                      {member.github && member.github !== "#" && (
+                        <a href={member.github} target="_blank" rel="noopener noreferrer"
+                          className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-white bg-gray-800 hover:bg-gray-700 border border-gray-700 px-3 py-1.5 rounded-lg transition-all">
+                          <Github className="w-3.5 h-3.5" /> GitHub
+                        </a>
+                      )}
+                      {member.email && (
+                        <a href={`mailto:${member.email}`}
+                          className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-white bg-gray-800 hover:bg-gray-700 border border-gray-700 px-3 py-1.5 rounded-lg transition-all">
+                          <Mail className="w-3.5 h-3.5" /> Email
+                        </a>
+                      )}
+                      {member.linkedin && member.linkedin !== "#" && (
+                        <a href={member.linkedin} target="_blank" rel="noopener noreferrer"
+                          className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-blue-400 bg-gray-800 hover:bg-gray-700 border border-gray-700 px-3 py-1.5 rounded-lg transition-all ml-auto">
+                          <Linkedin className="w-3.5 h-3.5" /> LinkedIn
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
+
         </div>
       </section>
     </div>
-  );
-}
-
-// Need Users import
-function Users({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-    </svg>
   );
 }
